@@ -9,18 +9,25 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
 
       - name: NodeJS Setup
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.12.0
+          node-version: 20
 
       - name: Dependency Installation
-        run: npm install
+        run: npm ci
 
       - name: App Build
         run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./dist"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
