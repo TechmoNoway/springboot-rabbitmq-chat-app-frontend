@@ -82,7 +82,7 @@ const Sidebar = () => {
   }, [user, stompClient]);
 
   const handleLogout = () => {
-    dispatch(logout({}));
+    dispatch(logout());
     changeUserStatus(user.id, "offline");
     navigate("/sign-in");
     localStorage.clear();
