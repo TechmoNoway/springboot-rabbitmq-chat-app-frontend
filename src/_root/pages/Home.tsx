@@ -22,7 +22,7 @@ const Home = () => {
     const token = localStorage.getItem("token");
 
     if (token == undefined || token == null || token == "") {
-      dispatch(logout({}));
+      dispatch(logout());
       if (location.pathname != "/sign-in") {
         toast({
           variant: "destructive",
@@ -66,7 +66,7 @@ const Home = () => {
         }
       } else {
         localStorage.setItem("token", "");
-        dispatch(logout({}));
+        dispatch(logout());
         if (location.pathname != "/sign-in") {
           toast({
             variant: "destructive",
