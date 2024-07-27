@@ -17,17 +17,10 @@ jobs:
           node-version: 20
 
       - name: Dependency Installation
-        run: npm ci
+        run: npm i
 
       - name: App Build
         run: npm run build
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "./dist"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -37,4 +30,4 @@ jobs:
           aws-region: ap-southeast-2
 
       - name: Deploy to AWS S3
-        run: aws s3 sync . s3://civicmessager --delete
+        run: aws s3 sync ./dist s3://civicmessager --delete

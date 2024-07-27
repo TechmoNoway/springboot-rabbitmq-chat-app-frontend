@@ -678,7 +678,7 @@ const MessagePage = () => {
                   <div className="text-primary">
                     <FaImage size={18} />
                   </div>
-                  <p>Images</p>
+                  <p>Image</p>
                 </label>
                 <label
                   htmlFor="uploadVideo"
