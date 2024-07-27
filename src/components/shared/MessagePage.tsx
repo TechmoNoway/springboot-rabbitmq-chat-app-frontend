@@ -176,7 +176,7 @@ const MessagePage = () => {
   const handleOnChange = (e: {
     target: { name: any; value: any };
   }) => {
-    const { name, value } = e.target;
+    const { value } = e.target;
 
     setMessage((preve) => {
       return {

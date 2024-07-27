@@ -68,7 +68,7 @@ const SearchUser = ({ onClose }: Props) => {
 
             {searchUser.length !== 0 &&
               !loading &&
-              searchUser.map((user, index) => {
+              searchUser.map((user) => {
                 return (
                   <UserSearchCard
                     key={user.id}

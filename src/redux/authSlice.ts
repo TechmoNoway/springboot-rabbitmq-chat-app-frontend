@@ -21,7 +21,7 @@ const authSlice = createSlice({
       state.phoneNumber = action.payload.phoneNumber;
       state.birthdate = action.payload.birthdate;
     },
-    logout: (state, action) => {
+    logout: (state) => {
       state.id = 0;
       state.username = "";
       state.email = "";
