@@ -3,6 +3,12 @@ export type ILoginForm = {
   password: string;
 };
 
+export type IGoogleLoginForm = {
+  username: any;
+  email: any;
+  accessToken: string;
+};
+
 export type IRegisterForm = {
   username: string;
   password: string;

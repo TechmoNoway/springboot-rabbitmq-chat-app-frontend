@@ -60,7 +60,9 @@ function SignupForm() {
         variant: "destructive",
         title: "Opps! Username already exists",
         description: "Please choose a new username.",
-        action: <ToastAction altText="Try again">Try again</ToastAction>,
+        action: (
+          <ToastAction altText="Try again">Try again</ToastAction>
+        ),
       });
     } else if (response && response.data) {
       toast({
@@ -75,7 +77,9 @@ function SignupForm() {
   return (
     <Form {...form}>
       <div className="sm:w-420 flex flex-col">
-        <h2 className="text-[30px] text-blue-950 font-bold">Sign Up</h2>
+        <h2 className="text-[30px] text-blue-950 font-bold">
+          Sign Up
+        </h2>
 
         <p className="text-[16px] text-blue-950 font-semibold mt-2">
           Please fill your information below

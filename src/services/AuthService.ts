@@ -1,4 +1,4 @@
-import { ILoginForm, IRegisterForm } from "@/types";
+import { IGoogleLoginForm, ILoginForm, IRegisterForm } from "@/types";
 import axios from "axios";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -27,6 +27,16 @@ export const login = (userForm: ILoginForm) => {
 export const register = (userForm: IRegisterForm) => {
   try {
     const res = API.post("api/v1/auth/register", userForm);
+    return res;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const loginUsingGoogle = (userForm: IGoogleLoginForm) => {
+  try {
+    const res = API.post("api/v1/auth/loginWithGoogle", userForm);
     return res;
   } catch (error) {
     console.log(error);

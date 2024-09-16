@@ -16,13 +16,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaGithub } from "react-icons/fa6";
 import { FcGoogle } from "react-icons/fc";
 import { useGoogleLogin } from "@react-oauth/google";
-import { login } from "@/services/AuthService";
+import { login, loginUsingGoogle } from "@/services/AuthService";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import PasswordInput from "@/components/shared/PasswordInput";
 import Loading from "@/components/shared/Loading";
+import axios from "axios";
 
 const formSchema = z.object({
   username: z.string().min(4, {
@@ -36,6 +37,14 @@ const formSchema = z.object({
 function SigninForm() {
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -70,24 +79,62 @@ function SigninForm() {
     }
   };
 
+  const checkGoogleAuthUser = () => {};
+
   useEffect(() => {
     checkAuthUser();
   }, []);
 
   const loginWithGoogle = useGoogleLogin({
-    onSuccess: (credentialResponse) => {
-      console.log(credentialResponse);
+    onSuccess: async (credentialResponse) => {
+      try {
+        const userInfo = await axios.get(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: {
+              Authorization: `Bearer ${credentialResponse.access_token}`,
+            },
+          }
+        );
+
+        const userGoogleLoginForm = {
+          username: userInfo.data.name,
+          email: userInfo.data.name,
+          accessToken: credentialResponse.access_token,
+        };
+
+        const googleLoginResponse = await loginUsingGoogle(
+          userGoogleLoginForm
+        );
+
+        console.log(googleLoginResponse);
+
+        if (googleLoginResponse?.data.status == 200) {
+          localStorage.setItem(
+            "token",
+            JSON.stringify(googleLoginResponse.data.data.accessToken)
+          );
+          navigate("/");
+          toast({
+            title: "Login successfully",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Opps! Wrong Credentials",
+            description:
+              "Something went wrong login with your Google Account.",
+            action: (
+              <ToastAction altText="Try again">Try again</ToastAction>
+            ),
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
     },
     onError() {
       console.log("Login Failed");
-    },
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      username: "",
-      password: "",
     },
   });
 
@@ -154,6 +201,9 @@ function SigninForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel className="text-blue-900">
+                    Password
+                  </FormLabel>
                   <FormControl>
                     <PasswordInput
                       placeholder="Password"

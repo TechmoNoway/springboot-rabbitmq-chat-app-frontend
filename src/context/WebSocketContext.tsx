@@ -25,6 +25,10 @@ const WebSocketProvider = ({
       onConnect: () => {
         console.log("WebSocket connected");
       },
+      connectHeaders: {
+        login: "guest",
+        passcode: "guest",
+      },
       onDisconnect: () => {
         console.log("WebSocket disconnected");
       },
@@ -34,6 +38,12 @@ const WebSocketProvider = ({
       onWebSocketError: (err) => {
         console.log(err);
       },
+      // debug: (str) => {
+      //   console.log(new Date(), str);
+      // },
+      // reconnectDelay: 5000,
+      // heartbeatIncoming: 4000,
+      // heartbeatOutgoing: 4000,
     });
 
     stompClient.activate();
