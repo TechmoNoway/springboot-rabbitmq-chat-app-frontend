@@ -45,6 +45,12 @@ export type IMessage = {
   timestamp: Date | undefined;
 };
 
+export type ISendMessage = {
+  text: string;
+  imageUrl: string;
+  videoUrl: string;
+};
+
 export type IFriendSide = {
   id: number;
   username: string;

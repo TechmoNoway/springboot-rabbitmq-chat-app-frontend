@@ -101,3 +101,8 @@
     background: #555;
     /* Darker grey on hover */
 }
+
+input[type=password]::-ms-reveal,
+input[type=password]::-ms-clear {
+    display: none;
+}

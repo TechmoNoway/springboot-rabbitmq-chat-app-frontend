@@ -47,7 +47,6 @@ const Sidebar = () => {
         });
 
       const usersWithStatus = await Promise.all(statusPromises);
-      console.log(usersWithStatus);
 
       setFriendListData(usersWithStatus);
     }
@@ -125,7 +124,7 @@ const Sidebar = () => {
                 src={user?.avatarUrl}
               />
 
-              <AvatarFallback className="w-10 h-10 font-semibold">
+              <AvatarFallback className="w-10 h-10 font-semibold bg-lime-300">
                 {(user?.username)[0]}
               </AvatarFallback>
             </Avatar>
@@ -142,7 +141,7 @@ const Sidebar = () => {
         </div>
       </div>
 
-      <div className="w-full">
+      <div className="w-full ">
         <div className="h-16 flex items-center">
           <h2 className="text-xl font-bold p-4 text-slate-800">
             Message
@@ -150,7 +149,7 @@ const Sidebar = () => {
         </div>
         <div className="bg-slate-200 p-[0.5px]"></div>
 
-        <div className="h-[calc(100vh-65px)] overflow-x-hidden overflow-y-auto scrollbar px-1">
+        <div className="h-[calc(100vh-65px)] overflow-x-hidden overflow-y-auto scrollbar px-1 border-r-[1px] border-gray-300">
           {friendListData.length === 0 && (
             <div className="mt-12">
               <div className="flex justify-center items-center my-4 text-slate-500">

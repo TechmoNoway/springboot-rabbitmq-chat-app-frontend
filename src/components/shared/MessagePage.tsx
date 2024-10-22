@@ -6,10 +6,8 @@ import { FaAngleLeft } from "react-icons/fa6";
 import { FaPlus } from "react-icons/fa6";
 import { FaImage } from "react-icons/fa6";
 import { FaVideo } from "react-icons/fa6";
-import { IoAddCircle, IoClose } from "react-icons/io5";
-import Loading from "./Loading";
+import { IoAddCircle } from "react-icons/io5";
 import { IoIosCall, IoMdSend } from "react-icons/io";
-import moment from "moment";
 import uploadFile from "../utils/uploadFile";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { AvatarFallback } from "@radix-ui/react-avatar";
@@ -38,15 +36,15 @@ import {
 } from "../ui/dialog";
 import Divider from "./Divider";
 import { Label } from "../ui/label";
-import { BsPersonFillCheck } from "react-icons/bs";
+import { BsEmojiSmileFill, BsPersonFillCheck } from "react-icons/bs";
 import {
   addFriend,
   checkIsFriend,
   removeFriend,
 } from "@/services/FriendService";
-
-const youtubeRegex =
-  /^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(\.com)?\/.+/;
+import MessageList from "./MessageList";
+import { IMessage } from "@/types";
+import EmojiPicker from "emoji-picker-react";
 
 const MessagePage = () => {
   const params = useParams();
@@ -67,22 +65,14 @@ const MessagePage = () => {
     birthdate: "",
     phoneNumber: "",
     status: "offline",
+    isBlocked: false,
   });
   const [message, setMessage] = useState({
     text: "",
     imageUrl: "",
     videoUrl: "",
   });
-  const [allMessage, setAllMessage] = useState<
-    {
-      senderId: number;
-      receiverId: number;
-      mediaType: string;
-      content: string;
-      mediaUrl: string;
-      timestamp: string;
-    }[]
-  >([]);
+  const [allMessage, setAllMessage] = useState<IMessage[]>([]);
   const currentMessage = useRef<HTMLDivElement>(null);
 
   const getAllMessages = async () => {
@@ -116,6 +106,12 @@ const MessagePage = () => {
         status: currentPartnerStatus?.data.data || "offline",
       });
     }
+  };
+
+  const handleOutputEmoji = (e: any) => {
+    setMessage((prev) => {
+      return { ...prev, text: prev.text + e.emoji };
+    });
   };
 
   const handleUploadImage = async (
@@ -178,9 +174,9 @@ const MessagePage = () => {
   }) => {
     const { value } = e.target;
 
-    setMessage((preve) => {
+    setMessage((prev) => {
       return {
-        ...preve,
+        ...prev,
         text: value,
       };
     });
@@ -208,7 +204,7 @@ const MessagePage = () => {
             username: dataPartner.username,
           }),
         });
-        setAllMessage((prev) => [
+        setAllMessage((prev: any) => [
           ...prev,
           {
             ...newMessage,
@@ -247,13 +243,15 @@ const MessagePage = () => {
             username: dataPartner.username,
           }),
         });
-        setAllMessage((prev) => [
+
+        setAllMessage((prev: any) => [
           ...prev,
           {
             ...newMessage,
             timestamp: newMessage.timestamp.toISOString(),
           },
         ]);
+
         const saveMessageResponse = await saveMessage(newMessage);
         console.log(saveMessageResponse);
         setMessage({
@@ -286,7 +284,7 @@ const MessagePage = () => {
             username: dataPartner.username,
           }),
         });
-        setAllMessage((prev) => [
+        setAllMessage((prev: any) => [
           ...prev,
           {
             ...newMessage,
@@ -394,7 +392,7 @@ const MessagePage = () => {
 
   return (
     <div className="bg-no-repeat bg-cover">
-      <header className="sticky top-0 h-16 bg-white flex justify-between items-center px-4">
+      <header className="sticky top-0 h-16 bg-white flex justify-between items-center px-4 drop-shadow-lg">
         <div className="flex items-center gap-4">
           <Link to={"/"} className="lg:hidden">
             <FaAngleLeft size={25} />
@@ -536,134 +534,22 @@ const MessagePage = () => {
       </header>
 
       {/***show all message */}
-      <section className="h-[calc(100vh-128px)] overflow-x-hidden overflow-y-scroll scrollbar relative bg-slate-200 bg-opacity-50">
-        {/**all message show here */}
-        <div
-          className="flex flex-col gap-2 py-2 mx-2"
-          ref={currentMessage}
-        >
-          {allMessage?.map((msg, index) => {
-            const generateClassName = () => {
-              let classes =
-                "p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md break-words";
-              if (
-                msg.mediaType !== "text" ||
-                youtubeRegex.test(msg.content)
-              )
-                classes += " bg-transparent";
-              if (
-                currentUser.id === msg?.receiverId &&
-                msg.mediaType === "text"
-              )
-                classes += " bg-white";
-              if (currentUser.id === msg.senderId) {
-                if (msg.mediaType === "text")
-                  classes += " bg-blue-300";
-                classes += " ml-auto";
-              }
-              return classes;
-            };
-
-            return (
-              <div className={generateClassName()} key={index}>
-                <div className="w-full relative">
-                  {msg?.mediaUrl && msg?.mediaType == "image" && (
-                    <img
-                      src={msg?.mediaUrl}
-                      className="w-full h-full object-scale-down rounded-lg shadow-md"
-                    />
-                  )}
-                  {msg?.mediaUrl && msg?.mediaType == "video" && (
-                    <video
-                      src={msg.mediaUrl}
-                      className="w-full h-full object-scale-down rounded-lg shadow-md"
-                      controls
-                    />
-                  )}
-                </div>
-                {msg?.mediaType == "text" ? (
-                  youtubeRegex.test(msg.content) ? (
-                    <iframe
-                      className="object-scale-down rounded-lg shadow-md lg:w-[440px] lg:h-[245px]"
-                      src={`https://www.youtube.com/embed/${
-                        msg.content.split("v=")[1].split("&")[0]
-                      }`}
-                      title="YouTube video player"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      referrerPolicy="strict-origin-when-cross-origin"
-                      allowFullScreen
-                    ></iframe>
-                  ) : (
-                    <p className="px-2">{msg.content}</p>
-                  )
-                ) : (
-                  <p className="px-2">{msg.content}</p>
-                )}
-
-                <p className="text-xs px-2 py-2 w-fit">
-                  {moment(msg.timestamp).format("hh:mm")}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-
-        {/**upload Image display */}
-        {message.imageUrl && (
-          <div className="w-full h-full sticky bottom-0 bg-gray-600 bg-opacity-30 flex justify-center items-center rounded overflow-hidden">
-            <div
-              className="w-fit p-2 absolute top-0 right-0 cursor-pointer text-white hover:text-red-600"
-              onClick={handleClearUploadImage}
-            >
-              <IoClose size={30} />
-            </div>
-            <div className="bg-transparent flex flex-col">
-              <img
-                src={message.imageUrl}
-                alt="uploadImage"
-                className="w-full h-full max-w-xl object-scale-down rounded-lg shadow-lg"
-              />
-              <div className="flex justify-end mt-3">
-                <Button onClick={handleSendImageMessage}>Send</Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/**upload video display */}
-        {message.videoUrl && (
-          <div className="w-full h-full sticky bottom-0 bg-slate-700 bg-opacity-30 flex justify-center items-center rounded overflow-hidden">
-            <div
-              className="w-fit p-2 absolute top-0 right-0 cursor-pointer text-white hover:text-red-600"
-              onClick={handleClearUploadVideo}
-            >
-              <IoClose size={30} />
-            </div>
-            <div className="bg-transparent flex flex-col">
-              <video
-                src={message.videoUrl}
-                className="w-full h-full max-w-xl object-scale-down rounded-lg shadow-lg"
-                controls
-                muted
-                autoPlay
-              />
-              <div className="flex justify-end mt-3">
-                <Button onClick={handleSendVideoMessage}>Send</Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {loading && (
-          <div className="w-full h-full flex sticky bottom-0 justify-center items-center">
-            <Loading />
-          </div>
-        )}
-      </section>
+      <MessageList
+        currentMessage={currentMessage}
+        allMessage={allMessage}
+        currentUser={currentUser}
+        dataPartner={dataPartner}
+        message={message}
+        loading={loading}
+        handleClearUploadImage={handleClearUploadImage}
+        handleSendImageMessage={handleSendImageMessage}
+        handleClearUploadVideo={handleClearUploadVideo}
+        handleSendVideoMessage={handleSendVideoMessage}
+      />
 
       {/**send message */}
       {message.imageUrl == "" && message.videoUrl == "" ? (
-        <section className="h-16 bg-white flex items-center px-4">
+        <section className="h-16 bg-white flex items-center px-2 space-x-2">
           {/**video and image */}
           <Popover>
             <PopoverTrigger className="flex justify-center items-center w-10 h-10 rounded-full hover:bg-primary hover:text-white">
@@ -709,16 +595,37 @@ const MessagePage = () => {
 
           {/**input box */}
           <form
-            className="h-full w-full flex gap-2"
+            className="h-full w-full flex gap-2 py-2"
             onSubmit={handleSendMessage}
           >
-            <input
-              type="text"
-              placeholder="Type here message..."
-              className="py-1 px-4 outline-none w-full h-full"
-              value={message.text}
-              onChange={handleOnChange}
-            />
+            <div className="w-full h-full flex rounded-full bg-gray-100 items-center justify-between py-1 pl-4 pr-3">
+              <input
+                type="text"
+                placeholder="Type here message..."
+                className="outline-none w-full h-full bg-transparent"
+                value={message.text}
+                onChange={handleOnChange}
+              />
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <div className="bg-transparent hover:bg-slate-200 rounded-full p-2 cursor-pointer">
+                    <BsEmojiSmileFill className="w-6 h-6" />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-[299px] h-[399px] p-0 bg-transparent border-0"
+                  align="end"
+                >
+                  <EmojiPicker
+                    width={300}
+                    height={400}
+                    className="border-0 rounded-none"
+                    onEmojiClick={handleOutputEmoji}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
             <button className="text-primary hover:text-secondary">
               <IoMdSend size={28} />
             </button>
