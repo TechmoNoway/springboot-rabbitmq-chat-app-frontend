@@ -304,6 +304,31 @@ const MessagePage = () => {
     }
   };
 
+  const handleSendCallNotify = () => {
+    if (stompClient && stompClient.connected) {
+      stompClient.publish({
+        destination: `/signal/${dataPartner.username}`,
+        body: JSON.stringify({
+          calling: "Im calling you",
+          username: dataPartner.username,
+        }),
+      });
+      // Calculate the center position for the new window
+      const width = 1200;
+      const height = 700;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2 - 40;
+
+      window.open(
+        "/videocall/" + dataPartner.id,
+        "_blank",
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
+    } else {
+      console.error("STOMP client is not connected");
+    }
+  };
+
   useEffect(() => {
     getAllMessages();
   }, [params]);
@@ -522,7 +547,7 @@ const MessagePage = () => {
 
         <div className="space-x-3">
           <button
-            onClick={() => navigate("/videocall")}
+            onClick={handleSendCallNotify}
             className="cursor-pointer hover:text-primary"
           >
             <IoIosCall className="w-4 h-4" />
