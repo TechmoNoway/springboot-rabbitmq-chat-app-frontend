@@ -33,6 +33,7 @@ const VideoCall: React.FC = () => {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isMicOn, setIsMicOn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const clientRef = useRef<Client | null>(null);
   const params = useParams();
@@ -68,33 +69,96 @@ const VideoCall: React.FC = () => {
     setIsCameraOn(!isCameraOn);
   };
 
+  const handleToggleTurnOnMic = () => {
+    setIsMicOn(!isMicOn);
+  };
+
+  const handleEndCall = () => {
+    window.close();
+  };
+
+  const handleGetCurrentUser = async () => {
+    const response = await getCurrentUser(
+      JSON.parse(localStorage.getItem("info") || "0")
+    );
+
+    setCurrentUser(response?.data?.data);
+  };
+
+  // useEffect(() => {
+  //   if (isCameraOn) {
+  //     navigator.mediaDevices
+  //       .getUserMedia({ video: true })
+  //       .then((stream) => {
+  //         if (videoRef.current) {
+  //           videoRef.current.srcObject = stream;
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         console.log("Error accessing camera:", error);
+  //       });
+  //   } else {
+  //     if (videoRef.current && videoRef.current.srcObject) {
+  //       console.log("Camera is off");
+  //       const tracks = (
+  //         videoRef.current.srcObject as MediaStream
+  //       ).getTracks();
+  //       tracks.forEach((track) => {
+  //         track.stop();
+  //       });
+  //       videoRef.current.srcObject = null;
+  //     }
+  //   }
+  // }, [isCameraOn]);
+
+  // useEffect(() => {
+  //   if (isMicOn) {
+  //     navigator.mediaDevices
+  //       .getUserMedia({ audio: true })
+  //       .then((stream) => {
+  //         setStream(stream);
+  //       })
+  //       .catch((error) => {
+  //         console.log("Error accessing mic:", error);
+  //       });
+  //   } else {
+  //     if (stream) {
+  //       const tracks = stream.getTracks();
+  //       tracks.forEach((track) => {
+  //         track.stop();
+  //       });
+  //       setStream(null);
+  //     }
+  //   }
+  // }, [isMicOn]);
+
+  // TODO: Fix the issue with the camera
+
   useEffect(() => {
-    if (isCameraOn) {
+    if (isCameraOn || isMicOn) {
       navigator.mediaDevices
-        .getUserMedia({ video: true })
+        .getUserMedia({ video: isCameraOn, audio: isMicOn })
         .then((stream) => {
+          setStream(stream);
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
           }
         })
         .catch((error) => {
-          console.log("Error accessing camera:", error);
+          console.log("Error accessing media devices:", error);
         });
     } else {
-      if (videoRef.current && videoRef.current.srcObject) {
-        console.log("Camera is off");
-        const tracks = (
-          videoRef.current.srcObject as MediaStream
-        ).getTracks();
-        tracks.forEach((track) => {
-          track.stop();
-        });
-        videoRef.current.srcObject = null;
+      if (stream) {
+        const tracks = stream.getTracks();
+        tracks.forEach((track) => track.stop());
+        setStream(null);
+        if (videoRef.current) {
+          videoRef.current.srcObject = null;
+        }
       }
     }
-  }, [isCameraOn]);
+  }, [isCameraOn, isMicOn]);
 
-  // TODO: Fix the issue with the camera
   useEffect(() => {
     clientRef.current = new Client({
       brokerURL: "ws://localhost:15674/ws",
@@ -112,48 +176,43 @@ const VideoCall: React.FC = () => {
         new WebSocket("http://localhost:15674/ws"),
     });
 
-    // clientRef.current.onConnect = () => {
-    //   clientRef.current?.subscribe("/topic/signaling", (message) => {
-    //     const data = JSON.parse(message.body);
-    //     if (data.type === "offer") {
-    //       const peer = new SimplePeer({
-    //         initiator: false,
-    //         trickle: false,
-    //         stream: stream!,
-    //       });
-    //       peer.signal(data.offer);
-    //       peer.on("signal", (answer) => {
-    //         clientRef.current?.publish({
-    //           destination: "/app/signal",
-    //           body: JSON.stringify({ type: "answer", answer }),
-    //         });
-    //       });
-    //       peer.on("stream", (stream) => {
-    //         if (videoRef.current) {
-    //           videoRef.current.srcObject = stream;
-    //         }
-    //       });
-    //       setPeer(peer);
-    //     } else if (data.type === "answer") {
-    //       peer?.signal(data.answer);
-    //     }
-    //   });
-    // };
+    clientRef.current.onConnect = () => {
+      clientRef.current?.subscribe("/topic/signaling", (message) => {
+        const data = JSON.parse(message.body);
+        if (data.type === "offer") {
+          const peer = new SimplePeer({
+            initiator: false,
+            trickle: false,
+            stream: stream!,
+          });
+          peer.signal(data.offer);
+          peer.on("signal", (answer) => {
+            clientRef.current?.publish({
+              destination: "/app/signal",
+              body: JSON.stringify({ type: "answer", answer }),
+            });
+          });
+          peer.on("stream", (stream) => {
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+            }
+          });
+          setPeer(peer);
+        } else if (data.type === "answer") {
+          peer?.signal(data.answer);
+        }
+      });
+    };
 
-    // clientRef.current.activate();
-
-    // navigator.mediaDevices
-    //   .getUserMedia({ video: true, audio: true })
-    //   .then((stream) => {
-    //     setStream(stream);
-    //     if (videoRef.current) {
-    //       videoRef.current.srcObject = stream;
-    //     }
-    //   });
+    clientRef.current.activate();
 
     return () => {
       clientRef.current?.deactivate();
     };
+  }, []);
+
+  useEffect(() => {
+    handleGetCurrentUser();
   }, []);
 
   useEffect(() => {
@@ -181,18 +240,21 @@ const VideoCall: React.FC = () => {
   //   setPeer(peer);
   // };
 
+  useEffect(() => {
+    console.log(currentUser);
+  }, [currentUser]);
+
   return (
     <>
-      {/* <video ref={videoRef} autoPlay /> */}
       {/* <button onClick={callUser}>Call</button> */}
-      <div className="flex flex-col h-screen w-screen justify-between bg-black text-foreground relative">
+      <div className="flex flex-col h-screen w-screen justify-between bg-[#1c1c1c] text-foreground relative">
         <div className="flex flex-col items-center justify-center h-full mb-4 space-y-3">
           <Avatar>
             <AvatarImage
               className="w-24 h-24"
               src={dataPartner?.avatarUrl}
             />
-            <AvatarFallback className="w-12 h-12 bg-slate-200 flex text-black items-center justify-center">
+            <AvatarFallback className="w-24 h-24 bg-slate-200 flex text-black items-center justify-center">
               <p>{(dataPartner?.username)[0]}</p>
             </AvatarFallback>
           </Avatar>
@@ -248,9 +310,15 @@ const VideoCall: React.FC = () => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button className="w-12 h-12 rounded-full bg-neutral-600">
-                  <FiMic className="w-8 h-8" />
-                  {/* <FiMicOff /> */}
+                <Button
+                  className="w-12 h-12 rounded-full bg-neutral-600"
+                  onClick={handleToggleTurnOnMic}
+                >
+                  {isMicOn ? (
+                    <FiMic className="w-8 h-8" />
+                  ) : (
+                    <FiMicOff className="w-8 h-8" />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent
@@ -266,7 +334,10 @@ const VideoCall: React.FC = () => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button className="bg-destructive w-12 h-12 rounded-full">
+                <Button
+                  className="bg-destructive w-12 h-12 rounded-full"
+                  onClick={handleEndCall}
+                >
                   <FaPhoneSlash className="w-8 h-8" />
                 </Button>
               </TooltipTrigger>
@@ -279,11 +350,27 @@ const VideoCall: React.FC = () => {
             </Tooltip>
           </TooltipProvider>
         </div>
-        <video
-          ref={videoRef}
-          autoPlay
-          className="absolute bottom-0 right-0 mb-5 mr-5 h-48 rounded-lg p-0"
-        />
+        {isCameraOn ? (
+          <video
+            ref={videoRef}
+            autoPlay
+            className="absolute bottom-0 right-0 mb-5 mr-5 h-44 rounded-lg p-0"
+          />
+        ) : (
+          <>
+            <div className="absolute bottom-0 right-0 mb-5 mr-5  rounded-lg p-0 bg-neutral-900 h-44 w-44 flex justify-center items-center shadow-lg">
+              <Avatar>
+                <AvatarImage
+                  className="w-16 h-16"
+                  src={currentUser?.avatarUrl}
+                />
+                <AvatarFallback className="w-16 h-16 bg-slate-200 flex text-black items-center justify-center">
+                  <p>{currentUser?.username[0]}</p>
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          </>
+        )}
       </div>
     </>
   );

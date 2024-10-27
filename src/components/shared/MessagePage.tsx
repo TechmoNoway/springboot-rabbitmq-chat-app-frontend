@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { HiDotsVertical } from "react-icons/hi";
 import { FaAngleLeft } from "react-icons/fa6";
 import { FaPlus } from "react-icons/fa6";
@@ -50,7 +50,6 @@ const MessagePage = () => {
   const params = useParams();
   const dispatch = useDispatch();
   const currentUser = useSelector((state: any) => state?.auth);
-  const navigate = useNavigate();
   const { client: stompClient } = useContext(WebSocketContext);
 
   const [loading, setLoading] = useState(false);
@@ -313,7 +312,7 @@ const MessagePage = () => {
           username: dataPartner.username,
         }),
       });
-      // Calculate the center position for the new window
+
       const width = 1200;
       const height = 700;
       const left = window.screen.width / 2 - width / 2;
