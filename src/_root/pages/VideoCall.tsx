@@ -22,7 +22,6 @@ import {
   BsCameraVideoOffFill,
 } from "react-icons/bs";
 import { FaPhoneSlash } from "react-icons/fa6";
-import { FcEndCall } from "react-icons/fc";
 import { FiMic, FiMicOff } from "react-icons/fi";
 import { useParams } from "react-router-dom";
 import SimplePeer from "simple-peer";
@@ -177,31 +176,31 @@ const VideoCall: React.FC = () => {
     });
 
     clientRef.current.onConnect = () => {
-      clientRef.current?.subscribe("/topic/signaling", (message) => {
-        const data = JSON.parse(message.body);
-        if (data.type === "offer") {
-          const peer = new SimplePeer({
-            initiator: false,
-            trickle: false,
-            stream: stream!,
-          });
-          peer.signal(data.offer);
-          peer.on("signal", (answer) => {
-            clientRef.current?.publish({
-              destination: "/app/signal",
-              body: JSON.stringify({ type: "answer", answer }),
-            });
-          });
-          peer.on("stream", (stream) => {
-            if (videoRef.current) {
-              videoRef.current.srcObject = stream;
-            }
-          });
-          setPeer(peer);
-        } else if (data.type === "answer") {
-          peer?.signal(data.answer);
-        }
-      });
+      // clientRef.current?.subscribe("/topic/signaling", (message) => {
+      //   const data = JSON.parse(message.body);
+      //   if (data.type === "offer") {
+      //     const peer = new SimplePeer({
+      //       initiator: false,
+      //       trickle: false,
+      //       stream: stream!,
+      //     });
+      //     peer.signal(data.offer);
+      //     peer.on("signal", (answer) => {
+      //       clientRef.current?.publish({
+      //         destination: "/app/signal",
+      //         body: JSON.stringify({ type: "answer", answer }),
+      //       });
+      //     });
+      //     peer.on("stream", (stream) => {
+      //       if (videoRef.current) {
+      //         videoRef.current.srcObject = stream;
+      //       }
+      //     });
+      //     setPeer(peer);
+      //   } else if (data.type === "answer") {
+      //     peer?.signal(data.answer);
+      //   }
+      // });
     };
 
     clientRef.current.activate();

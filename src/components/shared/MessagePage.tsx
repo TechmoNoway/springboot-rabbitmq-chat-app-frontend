@@ -26,7 +26,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../ui/popover";
-import { WebSocketContext } from "@/context/WebSocketContext";
+// import { WebSocketContext } from "@/context/WebSocketContext";
 import {
   Dialog,
   DialogContent,
@@ -50,7 +50,8 @@ const MessagePage = () => {
   const params = useParams();
   const dispatch = useDispatch();
   const currentUser = useSelector((state: any) => state?.auth);
-  const { client: stompClient } = useContext(WebSocketContext);
+  // const { client: stompClient } = useContext(WebSocketContext);
+  const stompClient = useSelector((state: any) => state.stompClient);
 
   const [loading, setLoading] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
@@ -201,6 +202,7 @@ const MessagePage = () => {
           body: JSON.stringify({
             ...newMessage,
             username: dataPartner.username,
+            type: "message",
           }),
         });
         setAllMessage((prev: any) => [
@@ -303,12 +305,13 @@ const MessagePage = () => {
     }
   };
 
+  //TODO: Update the receiver massage when the user is being called
   const handleSendCallNotify = () => {
     if (stompClient && stompClient.connected) {
       stompClient.publish({
-        destination: `/signal/${dataPartner.username}`,
+        destination: `/queue/${dataPartner.username}`,
         body: JSON.stringify({
-          calling: "Im calling you",
+          callerInfo: currentUser,
           username: dataPartner.username,
         }),
       });
@@ -349,7 +352,7 @@ const MessagePage = () => {
       console.log("stomp client is connected");
       stompClient.subscribe(
         `/topic/${currentUser.username}`,
-        (message) => {
+        (message: { body: string }) => {
           console.log(message);
 
           if (message.body) {

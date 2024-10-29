@@ -1,67 +1,126 @@
-import { createContext, useEffect, useState } from "react";
+// import { createContext, useEffect, useState } from "react";
+// import { Client } from "@stomp/stompjs";
+
+// const INITIAL_STATE = {
+//   client: null,
+// };
+// type IContextType = {
+//   client: Client | null;
+// };
+
+// const WebSocketContext = createContext<IContextType>(INITIAL_STATE);
+
+// const WebSocketProvider = ({
+//   children,
+// }: {
+//   children: React.ReactNode;
+// }) => {
+//   const [client, setClient] = useState<Client | null>(null);
+
+//   useEffect(() => {
+//     const stompClient = new Client({
+//       webSocketFactory: () =>
+//         new WebSocket("ws://localhost:15674/ws"),
+
+//       onConnect: () => {
+//         console.log("WebSocket connected");
+//       },
+//       connectHeaders: {
+//         login: "guest",
+//         passcode: "guest",
+//       },
+//       onDisconnect: () => {
+//         console.log("WebSocket disconnected");
+//       },
+//       onStompError: (err) => {
+//         console.log(err);
+//       },
+//       onWebSocketError: (err) => {
+//         console.log(err);
+//       },
+//       // debug: (str) => {
+//       //   console.log(new Date(), str);
+//       // },
+//       // reconnectDelay: 5000,
+//       // heartbeatIncoming: 2000,
+//       // heartbeatOutgoing: 2000,
+//     });
+
+//     stompClient.activate();
+
+//     setClient(stompClient);
+
+//     return () => {
+//       if (stompClient.connected) {
+//         stompClient.deactivate();
+//       }
+//     };
+//   }, []);
+
+//   return (
+//     <WebSocketContext.Provider value={{ client }}>
+//       {children}
+//     </WebSocketContext.Provider>
+//   );
+// };
+
+// export { WebSocketContext, WebSocketProvider };
+
+import React, { createContext, useContext, useEffect } from "react";
 import { Client } from "@stomp/stompjs";
+import { useDispatch, useSelector } from "react-redux";
+import { setStompClient } from "@/redux/webSocketSlice";
+import { RootState } from "@/redux/store";
 
-const INITIAL_STATE = {
-  client: null,
-};
-type IContextType = {
-  client: Client | null;
-};
+const WebSocketContext = createContext<Client | null>(null);
 
-const WebSocketContext = createContext<IContextType>(INITIAL_STATE);
-
-const WebSocketProvider = ({
-  children,
-}: {
+export const WebSocketProvider: React.FC<{
   children: React.ReactNode;
-}) => {
-  const [client, setClient] = useState<Client | null>(null);
+}> = ({ children }) => {
+  const dispatch = useDispatch();
+  const stompClient = useSelector(
+    (state: RootState) => state.webSocket.stompClient
+  );
 
   useEffect(() => {
-    const stompClient = new Client({
-      webSocketFactory: () =>
-        new WebSocket("ws://localhost:15674/ws"),
+    if (!stompClient) {
+      const client = new Client({
+        webSocketFactory: () =>
+          new WebSocket("ws://localhost:15674/ws"),
+        brokerURL: "ws://localhost:15674/ws",
+        debug: (str) => {
+          console.log(new Date(), str);
+        },
+        reconnectDelay: 5000,
+        heartbeatIncoming: 2000,
+        heartbeatOutgoing: 2000,
+      });
 
-      onConnect: () => {
-        console.log("WebSocket connected");
-      },
-      connectHeaders: {
-        login: "guest",
-        passcode: "guest",
-      },
-      onDisconnect: () => {
-        console.log("WebSocket disconnected");
-      },
-      onStompError: (err) => {
-        console.log(err);
-      },
-      onWebSocketError: (err) => {
-        console.log(err);
-      },
-      // debug: (str) => {
-      //   console.log(new Date(), str);
-      // },
-      // reconnectDelay: 5000,
-      // heartbeatIncoming: 4000,
-      // heartbeatOutgoing: 4000,
-    });
+      client.onConnect = () => {
+        console.log("Connected");
+      };
 
-    stompClient.activate();
+      client.onDisconnect = () => {
+        console.log("Disconnected");
+      };
 
-    setClient(stompClient);
+      client.activate();
+      dispatch(setStompClient(client));
+    }
 
     return () => {
-      if (stompClient.connected) {
+      if (stompClient) {
         stompClient.deactivate();
+        dispatch(setStompClient(null));
       }
     };
-  }, []);
+  }, [dispatch, stompClient]);
 
   return (
-    <WebSocketContext.Provider value={{ client }}>
+    <WebSocketContext.Provider value={stompClient}>
       {children}
     </WebSocketContext.Provider>
   );
 };
 
-export { WebSocketContext, WebSocketProvider };
+export const useWebSocket = () => useContext(WebSocketContext);

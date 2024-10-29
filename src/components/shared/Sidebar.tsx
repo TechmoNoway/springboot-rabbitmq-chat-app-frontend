@@ -17,13 +17,15 @@ import {
   getUserStatus,
 } from "@/services/UserService";
 import { IFriendSide } from "@/types";
-import { WebSocketContext } from "@/context/WebSocketContext";
+// import { WebSocketContext } from "@/context/WebSocketContext";
 
 const Sidebar = () => {
   const params = useParams();
   const user = useSelector((state: any) => state?.auth);
   const dispatch = useDispatch();
-  const { client: stompClient } = useContext(WebSocketContext);
+  // const { client: stompClient } = useContext(WebSocketContext);
+  const stompClient = useSelector((state: any) => state.stompClient);
+
   const [editUserOpen, setEditUserOpen] = useState(false);
   const [selectedUserSide, setSelectedUserSide] = useState(0);
   const [friendListData, setFriendListData] = useState<IFriendSide[]>(
