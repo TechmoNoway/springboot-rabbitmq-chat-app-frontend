@@ -87,13 +87,12 @@ export const WebSocketProvider: React.FC<{
       const client = new Client({
         webSocketFactory: () =>
           new WebSocket("ws://localhost:15674/ws"),
-        brokerURL: "ws://localhost:15674/ws",
-        debug: (str) => {
-          console.log(new Date(), str);
-        },
-        reconnectDelay: 5000,
-        heartbeatIncoming: 2000,
-        heartbeatOutgoing: 2000,
+        // debug: (str) => {
+        //   console.log(new Date(), str);
+        // },
+        // reconnectDelay: 5000,
+        // heartbeatIncoming: 2000,
+        // heartbeatOutgoing: 2000,
       });
 
       client.onConnect = () => {

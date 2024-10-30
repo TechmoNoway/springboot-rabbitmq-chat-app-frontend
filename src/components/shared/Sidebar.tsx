@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { IoChatbubbleEllipses } from "react-icons/io5";
 import { FaUserPlus } from "react-icons/fa";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
@@ -17,6 +17,7 @@ import {
   getUserStatus,
 } from "@/services/UserService";
 import { IFriendSide } from "@/types";
+import { useWebSocket } from "@/context/WebSocketContext";
 // import { WebSocketContext } from "@/context/WebSocketContext";
 
 const Sidebar = () => {
@@ -24,7 +25,7 @@ const Sidebar = () => {
   const user = useSelector((state: any) => state?.auth);
   const dispatch = useDispatch();
   // const { client: stompClient } = useContext(WebSocketContext);
-  const stompClient = useSelector((state: any) => state.stompClient);
+  const stompClient = useWebSocket();
 
   const [editUserOpen, setEditUserOpen] = useState(false);
   const [selectedUserSide, setSelectedUserSide] = useState(0);
@@ -195,7 +196,7 @@ const Sidebar = () => {
                   <h3 className="text-ellipsis line-clamp-1 font-semibold text-base">
                     {item?.username}
                   </h3>
-                  {/* // TODO: Add last seen message */}
+
                   {item?.lastMessage !== null && (
                     <div className="text-slate-500 text-xs flex items-center">
                       <div className="flex items-center gap-1">

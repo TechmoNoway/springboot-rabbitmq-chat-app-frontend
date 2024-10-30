@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import { HiDotsVertical } from "react-icons/hi";
@@ -45,13 +45,14 @@ import {
 import MessageList from "./MessageList";
 import { IMessage } from "@/types";
 import EmojiPicker from "emoji-picker-react";
+import { useWebSocket } from "@/context/WebSocketContext";
 
 const MessagePage = () => {
   const params = useParams();
   const dispatch = useDispatch();
   const currentUser = useSelector((state: any) => state?.auth);
   // const { client: stompClient } = useContext(WebSocketContext);
-  const stompClient = useSelector((state: any) => state.stompClient);
+  const stompClient = useWebSocket();
 
   const [loading, setLoading] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
@@ -350,7 +351,7 @@ const MessagePage = () => {
   useEffect(() => {
     if (stompClient?.connected) {
       console.log("stomp client is connected");
-      stompClient.subscribe(
+      const subscription = stompClient.subscribe(
         `/topic/${currentUser.username}`,
         (message: { body: string }) => {
           console.log(message);
@@ -372,6 +373,10 @@ const MessagePage = () => {
           }
         }
       );
+
+      return () => {
+        subscription.unsubscribe();
+      };
     }
   }, [stompClient?.connected, currentUser]);
 

@@ -1,4 +1,3 @@
-import { WebSocketProvider } from "@/context/WebSocketContext";
 import useUserActivity from "@/hooks/useUserActivity";
 import { changeUserStatus } from "@/services/UserService";
 import { useSelector } from "react-redux";
@@ -19,19 +18,18 @@ const RootLayout = () => {
 
   return (
     <>
-     
-        <div>
-          <div className="w-full md:flex">
-            {/* <Topbar />
+      <div>
+        <div className="w-full md:flex">
+          {/* <Topbar />
           <LeftSidebar /> */}
 
-            <section className="flex flex-1 h-full">
-              <Outlet />
-            </section>
+          <section className="flex flex-1 h-full">
+            <Outlet />
+          </section>
 
-            {/* <Bottombar /> */}
-          </div>
+          {/* <Bottombar /> */}
         </div>
+      </div>
     </>
   );
 };

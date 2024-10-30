@@ -205,6 +205,8 @@ const MessageList = ({
                     />
                   )}
                 </div>
+
+                {/* TODO: Fix the auto reconizing youtube link */}
                 {/* {msg?.mediaType == "text" ? (
                   youtubeRegex.test(msg.content) ? (
                     <iframe

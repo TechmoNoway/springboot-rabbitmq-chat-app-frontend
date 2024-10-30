@@ -13,13 +13,14 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { useWebSocket } from "@/context/WebSocketContext";
 import { logout, setUser } from "@/redux/authSlice";
 import {
   changeUserStatus,
   getCurrentUser,
 } from "@/services/UserService";
 import { jwtDecode } from "jwt-decode";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { IoIosCall } from "react-icons/io";
 import { IoClose } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
@@ -31,7 +32,7 @@ const Home = () => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const currentUser = useSelector((state: any) => state?.auth);
-  const stompClient = useSelector((state: any) => state?.stompClient);
+  const stompClient = useWebSocket();
   const [onCallingDialogOpen, setOnCallingDialogOpen] =
     useState(false);
   const basePath = location.pathname === "/";
