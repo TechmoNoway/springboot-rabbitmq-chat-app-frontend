@@ -23,10 +23,14 @@ import {
 } from "react-icons/bs";
 import { FaPhoneSlash } from "react-icons/fa6";
 import { FiMic, FiMicOff } from "react-icons/fi";
-import { useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import SimplePeer from "simple-peer";
 
 const VideoCall: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const senderId = searchParams.get("senderId");
+  const receiverId = searchParams.get("receiverId");
+
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [peer, setPeer] = useState<SimplePeer.Instance | null>(null);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
@@ -35,7 +39,6 @@ const VideoCall: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const clientRef = useRef<Client | null>(null);
-  const params = useParams();
 
   const [dataPartner, setDataPartner] = useState({
     id: 0,
@@ -49,17 +52,33 @@ const VideoCall: React.FC = () => {
   });
 
   const getPartnerData = async () => {
-    const response = await getCurrentUser(
-      parseInt(params.userId || "0")
-    );
+    if (
+      JSON.parse(localStorage.getItem("info") || "0") ===
+      parseInt(senderId || "0")
+    ) {
+      const response = await getCurrentUser(
+        parseInt(receiverId || "0")
+      );
 
-    if (response && response.data.data) {
-      setDataPartner({
-        ...response.data.data,
-      });
+      if (response && response.data.data) {
+        setDataPartner({
+          ...response.data.data,
+        });
+      }
+    } else {
+      const response = await getCurrentUser(
+        parseInt(senderId || "0")
+      );
+
+      if (response && response.data.data) {
+        setDataPartner({
+          ...response.data.data,
+        });
+      }
     }
   };
 
+  //TODO: Implement the following functions
   const handleToggleTurnOnScreenSharing = () => {
     setIsScreenSharing(!isScreenSharing);
   };
@@ -83,53 +102,6 @@ const VideoCall: React.FC = () => {
 
     setCurrentUser(response?.data?.data);
   };
-
-  // useEffect(() => {
-  //   if (isCameraOn) {
-  //     navigator.mediaDevices
-  //       .getUserMedia({ video: true })
-  //       .then((stream) => {
-  //         if (videoRef.current) {
-  //           videoRef.current.srcObject = stream;
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         console.log("Error accessing camera:", error);
-  //       });
-  //   } else {
-  //     if (videoRef.current && videoRef.current.srcObject) {
-  //       console.log("Camera is off");
-  //       const tracks = (
-  //         videoRef.current.srcObject as MediaStream
-  //       ).getTracks();
-  //       tracks.forEach((track) => {
-  //         track.stop();
-  //       });
-  //       videoRef.current.srcObject = null;
-  //     }
-  //   }
-  // }, [isCameraOn]);
-
-  // useEffect(() => {
-  //   if (isMicOn) {
-  //     navigator.mediaDevices
-  //       .getUserMedia({ audio: true })
-  //       .then((stream) => {
-  //         setStream(stream);
-  //       })
-  //       .catch((error) => {
-  //         console.log("Error accessing mic:", error);
-  //       });
-  //   } else {
-  //     if (stream) {
-  //       const tracks = stream.getTracks();
-  //       tracks.forEach((track) => {
-  //         track.stop();
-  //       });
-  //       setStream(null);
-  //     }
-  //   }
-  // }, [isMicOn]);
 
   // TODO: Fix the issue with the camera
 
@@ -216,7 +188,7 @@ const VideoCall: React.FC = () => {
 
   useEffect(() => {
     getPartnerData();
-  }, [params]);
+  }, [senderId, receiverId]);
 
   // const callUser = () => {
   //   const peer = new SimplePeer({

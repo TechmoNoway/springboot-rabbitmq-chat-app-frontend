@@ -1,132 +1,123 @@
-// import { getCurrentUser } from "@/services/UserService";
-// import { IUser } from "@/types";
-// import { createContext, useContext, useEffect, useState } from "react";
-// import { useLocation, useNavigate } from "react-router-dom";
-// import { jwtDecode } from "jwt-decode";
-// import { useToast } from "@/components/ui/use-toast";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate, useLocation } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
-// export const INITIAL_USER = {
-//   id: 0,
-//   username: "",
-//   email: "",
-//   avatarUrl: "",
-//   phoneNumber: "",
-//   birthdate: "",
-// };
+import { setUser, logout as logoutAction } from "../redux/authSlice";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  changeUserStatus,
+  getCurrentUser,
+} from "@/services/UserService";
 
-// export const INITIAL_STATE = {
-//   user: INITIAL_USER,
-//   isLoading: false,
-//   isAuthenticated: false,
-//   setUser: () => {},
-//   setIsAuthenticated: () => {},
-//   checkAuthUser: async () => false as boolean,
-// };
+interface AuthContextProps {
+  currentUser: any;
+  token: string | null;
+  login: (token: string) => void;
+  logout: () => void;
+}
 
-// type IContextType = {
-//   user: IUser;
-//   isLoading: boolean;
-//   setUser: React.Dispatch<React.SetStateAction<IUser>>;
-//   isAuthenticated: boolean;
-//   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
-//   checkAuthUser: () => Promise<boolean>;
-// };
+const AuthContext = createContext<AuthContextProps | undefined>(
+  undefined
+);
 
-// const AuthContext = createContext<IContextType>(INITIAL_STATE);
+export const AuthProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("token")
+  );
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
 
-// const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-//   const [user, setUser] = useState(INITIAL_USER);
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!token) {
+        dispatch(logoutAction());
+        if (location.pathname !== "/sign-in") {
+          toast({
+            variant: "destructive",
+            title: "Opps! Login session expired",
+            description: "Please login again.",
+          });
+          navigate("/sign-in");
+        }
+      } else {
+        const decodedToken: any = jwtDecode(token);
+        const currentUnixTimestamp = Math.floor(Date.now() / 1000);
 
-//   const navigate = useNavigate();
-//   const location = useLocation();
-//   const { toast } = useToast();
+        if (
+          decodedToken.exp &&
+          decodedToken.exp > currentUnixTimestamp
+        ) {
+          const userdetailResponse = await getCurrentUser(
+            parseInt(decodedToken.sub as string)
+          );
 
-//   const checkAuthUser = async () => {
-//     const token = localStorage.getItem("token");
+          if (userdetailResponse?.data.data) {
+            const currentUserInfo = userdetailResponse.data.data;
 
-//     if (token == undefined || token == null || token == "") {
-//       return false;
-//     } else {
-//       const decodedToken = jwtDecode(token || "");
-//       const currentUnixTimestamp = Math.floor(Date.now() / 1000);
-//       console.log(
-//         decodedToken.exp !== undefined &&
-//           decodedToken.exp > currentUnixTimestamp
-//       );
+            localStorage.setItem(
+              "info",
+              JSON.stringify(currentUserInfo.id)
+            );
+            changeUserStatus(currentUserInfo.id, "online");
 
-//       if (
-//         decodedToken.exp !== undefined &&
-//         decodedToken.exp > currentUnixTimestamp
-//       ) {
-//         try {
-//           const currentAccount = await getCurrentUser(
-//             parseInt(decodedToken.sub as string)
-//           );
+            dispatch(setUser(currentUserInfo));
+            setCurrentUser(currentUserInfo);
+          }
+        } else {
+          dispatch(logoutAction());
+          if (location.pathname !== "/sign-in") {
+            toast({
+              variant: "destructive",
+              title: "Opps! Login session expired",
+              description: "Please login again.",
+            });
+            navigate("/sign-in");
+          }
+        }
+      }
+    };
 
-//           if (currentAccount?.data.data) {
-//             const currentUserInfo = currentAccount.data.data;
+    checkAuth();
+  }, [token, dispatch, navigate, location]);
 
-//             setUser({
-//               id: currentUserInfo.id,
-//               username: currentUserInfo.username,
-//               email: currentUserInfo.email,
-//               avatarUrl: currentUserInfo.avatarUrl,
-//               phoneNumber: currentUserInfo.phoneNumber,
-//               birthdate: currentUserInfo.birthdate,
-//             });
-//             localStorage.setItem("authenticated", JSON.stringify(true));
-//             setIsAuthenticated(true);
-//             return true;
-//           }
-//           localStorage.setItem("authenticated", JSON.stringify(false));
-//           return false;
-//         } catch (error) {
-//           console.log(error);
-//           localStorage.setItem("authenticated", JSON.stringify(false));
-//           return false;
-//         } finally {
-//           setIsLoading(false);
-//         }
-//       } else {
-//         localStorage.setItem("token", "");
-//         localStorage.setItem("authenticated", JSON.stringify(false));
-//         if (location.pathname != "/sign-in") {
-//           toast({
-//             variant: "destructive",
-//             title: "Opps! Login session expired",
-//             description: "Please login again.",
-//           });
-//         }
-//         navigate("/sign-in");
-//         return false;
-//       }
-//     }
-//   };
+  const login = (newToken: string) => {
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
+  };
 
-//   useEffect(() => {
-//     if (
-//       localStorage.getItem("authenticated") === "false" ||
-//       localStorage.getItem("authenticated") === null
-//     ) {
-//       navigate("/sign-in");
-//     }
-//     checkAuthUser();
-//   }, []);
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("info");
+    setToken(null);
+    setCurrentUser(null);
+    dispatch(logoutAction());
+    navigate("/sign-in");
+  };
 
-//   const value = {
-//     user,
-//     isLoading,
-//     isAuthenticated,
-//     setUser,
-//     setIsAuthenticated,
-//     checkAuthUser,
-//   };
+  return (
+    <AuthContext.Provider
+      value={{ currentUser, token, login, logout }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-//   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-// };
-
-// export default AuthProvider;
-
-// export const useUserContext = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

@@ -46,12 +46,12 @@ import MessageList from "./MessageList";
 import { IMessage } from "@/types";
 import EmojiPicker from "emoji-picker-react";
 import { useWebSocket } from "@/context/WebSocketContext";
+import generateRandomId from "../utils/generateRandomId";
 
 const MessagePage = () => {
   const params = useParams();
   const dispatch = useDispatch();
   const currentUser = useSelector((state: any) => state?.auth);
-  // const { client: stompClient } = useContext(WebSocketContext);
   const stompClient = useWebSocket();
 
   const [loading, setLoading] = useState(false);
@@ -309,11 +309,14 @@ const MessagePage = () => {
   //TODO: Update the receiver massage when the user is being called
   const handleSendCallNotify = () => {
     if (stompClient && stompClient.connected) {
+      const roomId = generateRandomId(10);
+
       stompClient.publish({
         destination: `/queue/${dataPartner.username}`,
         body: JSON.stringify({
           callerInfo: currentUser,
           username: dataPartner.username,
+          linkRoomCall: `/videocall/?room=${roomId}&senderId=${currentUser.id}&receiverId=${dataPartner.id}`,
         }),
       });
 
@@ -323,7 +326,7 @@ const MessagePage = () => {
       const top = window.screen.height / 2 - height / 2 - 40;
 
       window.open(
-        "/videocall/" + dataPartner.id,
+        `/videocall/?room=${roomId}&senderId=${currentUser.id}&receiverId=${dataPartner.id}`,
         "_blank",
         `width=${width},height=${height},left=${left},top=${top}`
       );
@@ -378,7 +381,7 @@ const MessagePage = () => {
         subscription.unsubscribe();
       };
     }
-  }, [stompClient?.connected, currentUser]);
+  }, [stompClient?.connected, currentUser?.username]);
 
   useEffect(() => {
     if (currentMessage.current) {
@@ -420,7 +423,7 @@ const MessagePage = () => {
 
   useEffect(() => {
     handleCheckUserIsFriend();
-  }, [dataPartner, currentUser]);
+  }, [dataPartner, currentUser?.username]);
 
   return (
     <div className="bg-no-repeat bg-cover">

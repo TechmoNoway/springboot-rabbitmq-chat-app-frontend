@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 import { useWebSocket } from "@/context/WebSocketContext";
-import { logout, setUser } from "@/redux/authSlice";
+import { logout as logoutAction, setUser } from "@/redux/authSlice";
 import {
   changeUserStatus,
   getCurrentUser,
@@ -31,96 +32,126 @@ const Home = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { toast } = useToast();
-  const currentUser = useSelector((state: any) => state?.auth);
+  const { currentUser } = useAuth();
   const stompClient = useWebSocket();
   const [onCallingDialogOpen, setOnCallingDialogOpen] =
     useState(false);
+  const [latestReceivedMessage, setLatestReceivedMessage] =
+    useState<any>();
   const basePath = location.pathname === "/";
 
-  const checkAuthUser = async () => {
-    const token = localStorage.getItem("token");
+  // const checkAuthUser = async () => {
+  //   const token = localStorage.getItem("token");
 
-    if (token == undefined || token == null || token == "") {
-      dispatch(logout());
-      if (location.pathname != "/sign-in") {
-        toast({
-          variant: "destructive",
-          title: "Opps! Login session expired",
-          description: "Please login again.",
-        });
-      }
-      navigate("/sign-in");
-    } else {
-      const decodedToken = jwtDecode(token || "");
-      const currentUnixTimestamp = Math.floor(Date.now() / 1000);
+  //   if (token == undefined || token == null || token == "") {
+  //     dispatch(logout());
+  //     if (location.pathname != "/sign-in") {
+  //       toast({
+  //         variant: "destructive",
+  //         title: "Opps! Login session expired",
+  //         description: "Please login again.",
+  //       });
+  //     }
+  //     navigate("/sign-in");
+  //   } else {
+  //     const decodedToken = jwtDecode(token || "");
+  //     const currentUnixTimestamp = Math.floor(Date.now() / 1000);
 
-      if (
-        decodedToken.exp !== undefined &&
-        decodedToken.exp > currentUnixTimestamp
-      ) {
-        const userdetailResponse = await getCurrentUser(
-          parseInt(decodedToken.sub as string)
-        );
+  //     if (
+  //       decodedToken.exp !== undefined &&
+  //       decodedToken.exp > currentUnixTimestamp
+  //     ) {
+  //       const userdetailResponse = await getCurrentUser(
+  //         parseInt(decodedToken.sub as string)
+  //       );
 
-        if (userdetailResponse?.data.data) {
-          const currentUserInfo = userdetailResponse.data.data;
+  //       if (userdetailResponse?.data.data) {
+  //         const currentUserInfo = userdetailResponse.data.data;
 
-          localStorage.setItem(
-            "info",
-            JSON.stringify(currentUserInfo.id)
-          );
+  //         localStorage.setItem(
+  //           "info",
+  //           JSON.stringify(currentUserInfo.id)
+  //         );
 
-          changeUserStatus(currentUserInfo.id, "online");
+  //         changeUserStatus(currentUserInfo.id, "online");
 
-          dispatch(
-            setUser({
-              id: currentUserInfo.id,
-              username: currentUserInfo.username,
-              email: currentUserInfo.email,
-              avatarUrl: currentUserInfo.avatarUrl,
-              phoneNumber: currentUserInfo.phoneNumber,
-              birthdate: currentUserInfo.birthdate,
-            })
-          );
-        }
-      } else {
-        localStorage.setItem("token", "");
-        dispatch(logout());
-        if (location.pathname != "/sign-in") {
-          toast({
-            variant: "destructive",
-            title: "Opps! Login session expired",
-            description: "Please login again.",
-          });
-        }
-        navigate("/sign-in");
-      }
-    }
+  //         dispatch(
+  //           setUser({
+  //             id: currentUserInfo.id,
+  //             username: currentUserInfo.username,
+  //             email: currentUserInfo.email,
+  //             avatarUrl: currentUserInfo.avatarUrl,
+  //             phoneNumber: currentUserInfo.phoneNumber,
+  //             birthdate: currentUserInfo.birthdate,
+  //           })
+  //         );
+  //       }
+  //     } else {
+  //       localStorage.setItem("token", "");
+  //       dispatch(logout());
+  //       if (location.pathname != "/sign-in") {
+  //         toast({
+  //           variant: "destructive",
+  //           title: "Opps! Login session expired",
+  //           description: "Please login again.",
+  //         });
+  //       }
+  //       navigate("/sign-in");
+  //     }
+  //   }
+  // };
+
+  const handleAcceptJoinCall = () => {
+    const width = 1200;
+    const height = 700;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2 - 40;
+
+    window.open(
+      latestReceivedMessage?.linkRoomCall,
+      "_blank",
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
+
+    setOnCallingDialogOpen(false);
   };
 
-  useEffect(() => {
-    checkAuthUser();
-  }, []);
+  const handleDeclineJoinCall = () => {
+    setOnCallingDialogOpen(false);
+  };
+
+  // useEffect(() => {
+  //   checkAuthUser();
+  // }, []);
 
   useEffect(() => {
-    if (stompClient?.connected) {
+    console.log("useEffect called");
+    console.log("stompClient?.connected:", stompClient?.connected);
+    console.log("currentUser?.username:", currentUser?.username);
+
+    if (stompClient?.connected && currentUser?.username) {
       console.log("stomp client is connected");
-      stompClient.subscribe(
+      const subscription = stompClient.subscribe(
         `/queue/${currentUser.username}`,
         (message: { body: string }) => {
           console.log(message);
           if (message.body) {
             const newMessage = JSON.parse(message.body);
             console.log(newMessage);
-
+            setLatestReceivedMessage(newMessage);
             setOnCallingDialogOpen(true);
           } else {
             console.log("got empty message");
           }
         }
       );
+
+      // Cleanup subscription on unmount
+      return () => {
+        subscription.unsubscribe();
+      };
     }
-  }, [stompClient?.connected, currentUser]);
+  }, [stompClient?.connected, currentUser?.username]);
 
   return (
     <>
@@ -173,14 +204,14 @@ const Home = () => {
               <Button
                 type="submit"
                 className="rounded-full bg-red-500 w-10 h-10"
-                onClick={() => setOnCallingDialogOpen(false)}
+                onClick={handleDeclineJoinCall}
               >
                 <IoClose className="h-5 w-5" />
               </Button>
               <Button
                 type="submit"
                 className="rounded-full bg-green-500 w-10 h-10"
-                onClick={() => setOnCallingDialogOpen(false)}
+                onClick={handleAcceptJoinCall}
               >
                 <IoIosCall className="h-5 w-5" />
               </Button>

@@ -18,13 +18,11 @@ import {
 } from "@/services/UserService";
 import { IFriendSide } from "@/types";
 import { useWebSocket } from "@/context/WebSocketContext";
-// import { WebSocketContext } from "@/context/WebSocketContext";
 
 const Sidebar = () => {
   const params = useParams();
   const user = useSelector((state: any) => state?.auth);
   const dispatch = useDispatch();
-  // const { client: stompClient } = useContext(WebSocketContext);
   const stompClient = useWebSocket();
 
   const [editUserOpen, setEditUserOpen] = useState(false);

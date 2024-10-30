@@ -25,9 +25,9 @@ function App() {
             <Route path="/" element={<Home />}>
               <Route path=":userId" element={<MessagePage />} />
             </Route>
-            <Route path="/videocall">
-              <Route path=":userId" element={<VideoCall />} />
-            </Route>
+
+            <Route path="/videocall" element={<VideoCall />} />
+
             <Route path="/test" element={<Test />} />
           </Route>
         </Routes>
