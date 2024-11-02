@@ -41,14 +41,18 @@ export const AuthProvider: React.FC<{
   useEffect(() => {
     const checkAuth = async () => {
       if (!token) {
-        dispatch(logoutAction());
-        if (location.pathname !== "/sign-in") {
-          toast({
-            variant: "destructive",
-            title: "Opps! Login session expired",
-            description: "Please login again.",
-          });
-          navigate("/sign-in");
+        try {
+          dispatch(logoutAction());
+          if (location.pathname !== "/sign-in") {
+            toast({
+              variant: "destructive",
+              title: "Opps! Login session expired",
+              description: "Please login again.",
+            });
+            navigate("/sign-in");
+          }
+        } catch (error) {
+          console.log(error);
         }
       } else {
         const decodedToken: any = jwtDecode(token);
@@ -99,6 +103,7 @@ export const AuthProvider: React.FC<{
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("info");
+    localStorage.removeItem("persist:root");
     setToken(null);
     setCurrentUser(null);
     dispatch(logoutAction());

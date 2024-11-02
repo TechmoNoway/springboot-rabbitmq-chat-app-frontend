@@ -14,7 +14,7 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-export const login = (userForm: ILoginForm) => {
+export const doLogin = (userForm: ILoginForm) => {
   try {
     const res = API.post("api/v1/auth/login", userForm);
     return res;

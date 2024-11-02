@@ -26,7 +26,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../ui/popover";
-// import { WebSocketContext } from "@/context/WebSocketContext";
 import {
   Dialog,
   DialogContent,
@@ -47,6 +46,7 @@ import { IMessage } from "@/types";
 import EmojiPicker from "emoji-picker-react";
 import { useWebSocket } from "@/context/WebSocketContext";
 import generateRandomId from "../utils/generateRandomId";
+import SimplePeer from "simple-peer";
 
 const MessagePage = () => {
   const params = useParams();
@@ -56,6 +56,7 @@ const MessagePage = () => {
 
   const [loading, setLoading] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
+  const [peer, setPeer] = useState<SimplePeer.Instance | null>(null);
 
   const [dataPartner, setDataPartner] = useState({
     id: 0,
@@ -309,6 +310,18 @@ const MessagePage = () => {
   //TODO: Update the receiver massage when the user is being called
   const handleSendCallNotify = () => {
     if (stompClient && stompClient.connected) {
+      // const peer = new SimplePeer({
+      //   initiator: true,
+      //   trickle: false,
+      // });
+
+      // //   peer.on("signal", (offer) => {
+      // //     clientRef.current?.publish({
+      // //       destination: "/app/signal",
+      // //       body: JSON.stringify({ type: "offer", offer }),
+      // //     });
+      // //   });
+
       const roomId = generateRandomId(10);
 
       stompClient.publish({
@@ -337,9 +350,6 @@ const MessagePage = () => {
 
   useEffect(() => {
     getAllMessages();
-  }, [params]);
-
-  useEffect(() => {
     getPartnerData();
   }, [params]);
 

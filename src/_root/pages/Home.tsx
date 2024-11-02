@@ -12,26 +12,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { useWebSocket } from "@/context/WebSocketContext";
-import { logout as logoutAction, setUser } from "@/redux/authSlice";
-import {
-  changeUserStatus,
-  getCurrentUser,
-} from "@/services/UserService";
-import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import { IoIosCall } from "react-icons/io";
 import { IoClose } from "react-icons/io5";
-import { useDispatch, useSelector } from "react-redux";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 const Home = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { toast } = useToast();
   const { currentUser } = useAuth();
   const stompClient = useWebSocket();
   const [onCallingDialogOpen, setOnCallingDialogOpen] =
@@ -39,67 +28,6 @@ const Home = () => {
   const [latestReceivedMessage, setLatestReceivedMessage] =
     useState<any>();
   const basePath = location.pathname === "/";
-
-  // const checkAuthUser = async () => {
-  //   const token = localStorage.getItem("token");
-
-  //   if (token == undefined || token == null || token == "") {
-  //     dispatch(logout());
-  //     if (location.pathname != "/sign-in") {
-  //       toast({
-  //         variant: "destructive",
-  //         title: "Opps! Login session expired",
-  //         description: "Please login again.",
-  //       });
-  //     }
-  //     navigate("/sign-in");
-  //   } else {
-  //     const decodedToken = jwtDecode(token || "");
-  //     const currentUnixTimestamp = Math.floor(Date.now() / 1000);
-
-  //     if (
-  //       decodedToken.exp !== undefined &&
-  //       decodedToken.exp > currentUnixTimestamp
-  //     ) {
-  //       const userdetailResponse = await getCurrentUser(
-  //         parseInt(decodedToken.sub as string)
-  //       );
-
-  //       if (userdetailResponse?.data.data) {
-  //         const currentUserInfo = userdetailResponse.data.data;
-
-  //         localStorage.setItem(
-  //           "info",
-  //           JSON.stringify(currentUserInfo.id)
-  //         );
-
-  //         changeUserStatus(currentUserInfo.id, "online");
-
-  //         dispatch(
-  //           setUser({
-  //             id: currentUserInfo.id,
-  //             username: currentUserInfo.username,
-  //             email: currentUserInfo.email,
-  //             avatarUrl: currentUserInfo.avatarUrl,
-  //             phoneNumber: currentUserInfo.phoneNumber,
-  //             birthdate: currentUserInfo.birthdate,
-  //           })
-  //         );
-  //       }
-  //     } else {
-  //       localStorage.setItem("token", "");
-  //       dispatch(logout());
-  //       if (location.pathname != "/sign-in") {
-  //         toast({
-  //           variant: "destructive",
-  //           title: "Opps! Login session expired",
-  //           description: "Please login again.",
-  //         });
-  //       }
-  //       navigate("/sign-in");
-  //     }
-  //   }
-  // };
 
   const handleAcceptJoinCall = () => {
     const width = 1200;
@@ -119,10 +47,6 @@ const Home = () => {
   const handleDeclineJoinCall = () => {
     setOnCallingDialogOpen(false);
   };
-
-  // useEffect(() => {
-  //   checkAuthUser();
-  // }, []);
 
   useEffect(() => {
     console.log("useEffect called");
@@ -146,7 +70,6 @@ const Home = () => {
         }
       );
 
-      // Cleanup subscription on unmount
       return () => {
         subscription.unsubscribe();
       };

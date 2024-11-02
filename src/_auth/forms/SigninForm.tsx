@@ -16,14 +16,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaGithub } from "react-icons/fa6";
 import { FcGoogle } from "react-icons/fc";
 import { useGoogleLogin } from "@react-oauth/google";
-import { login, loginUsingGoogle } from "@/services/AuthService";
+import { doLogin, loginUsingGoogle } from "@/services/AuthService";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
+import { useState } from "react";
 import PasswordInput from "@/components/shared/PasswordInput";
 import Loading from "@/components/shared/Loading";
 import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 
 const formSchema = z.object({
   username: z.string().min(4, {
@@ -37,6 +37,7 @@ const formSchema = z.object({
 function SigninForm() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,42 +49,7 @@ function SigninForm() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const checkAuthUser = async () => {
-    const token = localStorage.getItem("token");
-
-    if (token == undefined || token == null || token == "") {
-      return;
-    } else {
-      const decodedToken = jwtDecode(token || "");
-      const currentUnixTimestamp = Math.floor(Date.now() / 1000);
-
-      if (
-        decodedToken.exp !== undefined &&
-        decodedToken.exp > currentUnixTimestamp
-      ) {
-        navigate("/");
-        toast({
-          title: "Welcome back!",
-        });
-      } else {
-        localStorage.setItem("token", "");
-        if (location.pathname != "/sign-in") {
-          toast({
-            variant: "destructive",
-            title: "Opps! Login session expired",
-            description: "Please login again.",
-          });
-        }
-        navigate("/sign-in");
-      }
-    }
-  };
-
   const checkGoogleAuthUser = () => {};
-
-  useEffect(() => {
-    checkAuthUser();
-  }, []);
 
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (credentialResponse) => {
@@ -138,15 +104,13 @@ function SigninForm() {
     },
   });
 
+  //TODO: Update the login function
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    const response = await login(values);
+    const response = await doLogin(values);
     if (response && response.data.data) {
       setIsLoading(false);
-      localStorage.setItem(
-        "token",
-        JSON.stringify(response.data.data.accessToken)
-      );
+      login(JSON.stringify(response.data.data.accessToken));
       navigate("/");
       toast({
         title: "Login successfully",

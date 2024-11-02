@@ -10,6 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useWebSocket } from "@/context/WebSocketContext";
 import { getCurrentUser } from "@/services/UserService";
 import { Client } from "@stomp/stompjs";
 import {
@@ -38,7 +39,8 @@ const VideoCall: React.FC = () => {
   const [isMicOn, setIsMicOn] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const clientRef = useRef<Client | null>(null);
+  // const clientRef = useRef<Client | null>(null);
+  const clientRef = useWebSocket();
 
   const [dataPartner, setDataPartner] = useState({
     id: 0,
@@ -130,57 +132,59 @@ const VideoCall: React.FC = () => {
     }
   }, [isCameraOn, isMicOn]);
 
-  useEffect(() => {
-    clientRef.current = new Client({
-      brokerURL: "ws://localhost:15674/ws",
-      connectHeaders: {
-        login: "guest",
-        passcode: "guest",
-      },
-      debug: (str) => {
-        console.log(str);
-      },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-      webSocketFactory: () =>
-        new WebSocket("http://localhost:15674/ws"),
-    });
+  // useEffect(() => {
+  //   clientRef.current = new Client({
+  //     brokerURL: "ws://localhost:15674/ws",
+  //     connectHeaders: {
+  //       login: "guest",
+  //       passcode: "guest",
+  //     },
+  //     debug: (str) => {
+  //       console.log(str);
+  //     },
+  //     reconnectDelay: 5000,
+  //     heartbeatIncoming: 4000,
+  //     heartbeatOutgoing: 4000,
+  //     webSocketFactory: () =>
+  //       new WebSocket("http://localhost:15674/ws"),
+  //   });
 
-    clientRef.current.onConnect = () => {
-      // clientRef.current?.subscribe("/topic/signaling", (message) => {
-      //   const data = JSON.parse(message.body);
-      //   if (data.type === "offer") {
-      //     const peer = new SimplePeer({
-      //       initiator: false,
-      //       trickle: false,
-      //       stream: stream!,
-      //     });
-      //     peer.signal(data.offer);
-      //     peer.on("signal", (answer) => {
-      //       clientRef.current?.publish({
-      //         destination: "/app/signal",
-      //         body: JSON.stringify({ type: "answer", answer }),
-      //       });
-      //     });
-      //     peer.on("stream", (stream) => {
-      //       if (videoRef.current) {
-      //         videoRef.current.srcObject = stream;
-      //       }
-      //     });
-      //     setPeer(peer);
-      //   } else if (data.type === "answer") {
-      //     peer?.signal(data.answer);
-      //   }
-      // });
-    };
+  //   clientRef.current.onConnect = () => {
+  //     // clientRef.current?.subscribe("/topic/signaling", (message) => {
+  //     //   const data = JSON.parse(message.body);
+  //     //   if (data.type === "offer") {
+  //     //     const peer = new SimplePeer({
+  //     //       initiator: false,
+  //     //       trickle: false,
+  //     //       stream: stream!,
+  //     //     });
+  //     //     peer.signal(data.offer);
+  //     //     peer.on("signal", (answer) => {
+  //     //       clientRef.current?.publish({
+  //     //         destination: "/app/signal",
+  //     //         body: JSON.stringify({ type: "answer", answer }),
+  //     //       });
+  //     //     });
+  //     //     peer.on("stream", (stream) => {
+  //     //       if (videoRef.current) {
+  //     //         videoRef.current.srcObject = stream;
+  //     //       }
+  //     //     });
+  //     //     setPeer(peer);
+  //     //   } else if (data.type === "answer") {
+  //     //     peer?.signal(data.answer);
+  //     //   }
+  //     // });
+  //   };
 
-    clientRef.current.activate();
+  //   clientRef.current.activate();
 
-    return () => {
-      clientRef.current?.deactivate();
-    };
-  }, []);
+  //   return () => {
+  //     clientRef.current?.deactivate();
+  //   };
+  // }, []);
+
+  useEffect(() => {}, [clientRef?.connected, currentUser?.username]);
 
   useEffect(() => {
     handleGetCurrentUser();

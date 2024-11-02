@@ -26,7 +26,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     const client = new Client({
       webSocketFactory: () =>
         new WebSocket("ws://localhost:15674/ws"),
-      brokerURL: "ws://your-websocket-url",
+
       // debug: (str) => {
       //   console.log(new Date(), str);
       // },

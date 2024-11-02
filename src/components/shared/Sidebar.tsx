@@ -7,8 +7,7 @@ import { FiArrowUpLeft } from "react-icons/fi";
 import SearchUser from "./SearchUser";
 import { FaImage } from "react-icons/fa6";
 import { FaVideo } from "react-icons/fa6";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "@/redux/authSlice";
+import { useSelector } from "react-redux";
 import EditUserDetails from "./EditUserDetails";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
@@ -18,12 +17,13 @@ import {
 } from "@/services/UserService";
 import { IFriendSide } from "@/types";
 import { useWebSocket } from "@/context/WebSocketContext";
+import { useAuth } from "@/context/AuthContext";
 
 const Sidebar = () => {
   const params = useParams();
   const user = useSelector((state: any) => state?.auth);
-  const dispatch = useDispatch();
   const stompClient = useWebSocket();
+  const { logout } = useAuth();
 
   const [editUserOpen, setEditUserOpen] = useState(false);
   const [selectedUserSide, setSelectedUserSide] = useState(0);
@@ -82,8 +82,8 @@ const Sidebar = () => {
   }, [user, stompClient]);
 
   const handleLogout = () => {
-    dispatch(logout());
     changeUserStatus(user.id, "offline");
+    logout();
     navigate("/sign-in");
     localStorage.clear();
   };
