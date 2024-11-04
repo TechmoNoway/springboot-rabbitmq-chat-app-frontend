@@ -307,28 +307,52 @@ const MessagePage = () => {
     }
   };
 
-  //TODO: Update the receiver massage when the user is being called
+  // TODO: Update the receiver massage when the user is being called
   const handleSendCallNotify = () => {
     if (stompClient && stompClient.connected) {
+      const roomId = generateRandomId(10);
+
       // const peer = new SimplePeer({
       //   initiator: true,
       //   trickle: false,
       // });
 
-      // //   peer.on("signal", (offer) => {
-      // //     clientRef.current?.publish({
-      // //       destination: "/app/signal",
-      // //       body: JSON.stringify({ type: "offer", offer }),
-      // //     });
-      // //   });
+      // peer.on("signal", (offer) => {
+      //   stompClient.publish({
+      //     destination: `/queue/${roomId}`,
+      //     body: JSON.stringify({
+      //       type: "offer",
+      //       offer,
+      //       roomId,
+      //       senderId: currentUser.id,
+      //     }),
+      //   });
+      // });
 
-      const roomId = generateRandomId(10);
+      // stompClient.subscribe(`/queue/${roomId}`, (message) => {
+      //   const data = JSON.parse(message.body);
+      //   if (data.type === "answer") {
+      //     peer.signal(data.answer);
+      //   }
+      // });
+
+      // peer.on("connect", () => {
+      //   console.log("Peer connected");
+      // });
+
+      // peer.on("data", (data) => {
+      //   console.log("Received data:", data);
+      // });
+
+      // peer.on("error", (err) => {
+      //   console.error("Peer error:", err);
+      // });
 
       stompClient.publish({
         destination: `/queue/${dataPartner.username}`,
         body: JSON.stringify({
+          type: "offer",
           callerInfo: currentUser,
-          username: dataPartner.username,
           linkRoomCall: `/videocall/?room=${roomId}&senderId=${currentUser.id}&receiverId=${dataPartner.id}`,
         }),
       });
@@ -347,6 +371,50 @@ const MessagePage = () => {
       console.error("STOMP client is not connected");
     }
   };
+
+  // const handleSendCallNotify = () => {
+  //   if (stompClient && stompClient.connected) {
+  //     const roomId = generateRandomId(10);
+
+  //     const peer = new SimplePeer({
+  //       initiator: true,
+  //       trickle: false,
+  //     });
+
+  //     peer.on("signal", (offer) => {
+  //       stompClient.publish({
+  //         destination: `/queue/${roomId}`,
+  //         body: JSON.stringify({
+  //           type: "offer",
+  //           offer,
+  //           roomId,
+  //           senderId: currentUser.id,
+  //         }),
+  //       });
+  //     });
+
+  //     stompClient.subscribe(`/queue/${roomId}`, (message) => {
+  //       const data = JSON.parse(message.body);
+  //       if (data.type === "answer") {
+  //         peer.signal(data.answer);
+  //       }
+  //     });
+
+  //     peer.on("connect", () => {
+  //       console.log("Peer connected");
+  //     });
+
+  //     peer.on("data", (data) => {
+  //       console.log("Received data:", data);
+  //     });
+
+  //     peer.on("error", (err) => {
+  //       console.error("Peer error:", err);
+  //     });
+  //   } else {
+  //     console.error("STOMP client is not connected");
+  //   }
+  // };
 
   useEffect(() => {
     getAllMessages();

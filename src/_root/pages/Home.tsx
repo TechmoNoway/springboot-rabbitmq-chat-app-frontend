@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { IoIosCall } from "react-icons/io";
 import { IoClose } from "react-icons/io5";
 import { Outlet, useLocation } from "react-router-dom";
+import SimplePeer from "simple-peer";
 
 const Home = () => {
   const location = useLocation();
@@ -28,20 +29,23 @@ const Home = () => {
   const [latestReceivedMessage, setLatestReceivedMessage] =
     useState<any>();
   const basePath = location.pathname === "/";
+  const [peer, setPeer] = useState<SimplePeer.Instance | null>(null);
 
   const handleAcceptJoinCall = () => {
-    const width = 1200;
-    const height = 700;
-    const left = window.screen.width / 2 - width / 2;
-    const top = window.screen.height / 2 - height / 2 - 40;
+    if (stompClient && stompClient.connected) {
+      const width = 1200;
+      const height = 700;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2 - 40;
 
-    window.open(
-      latestReceivedMessage?.linkRoomCall,
-      "_blank",
-      `width=${width},height=${height},left=${left},top=${top}`
-    );
+      window.open(
+        latestReceivedMessage?.linkRoomCall,
+        "_blank",
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
 
-    setOnCallingDialogOpen(false);
+      setOnCallingDialogOpen(false);
+    }
   };
 
   const handleDeclineJoinCall = () => {
@@ -49,12 +53,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-    console.log("useEffect called");
-    console.log("stompClient?.connected:", stompClient?.connected);
-    console.log("currentUser?.username:", currentUser?.username);
-
     if (stompClient?.connected && currentUser?.username) {
-      console.log("stomp client is connected");
       const subscription = stompClient.subscribe(
         `/queue/${currentUser.username}`,
         (message: { body: string }) => {

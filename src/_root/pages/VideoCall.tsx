@@ -31,6 +31,7 @@ const VideoCall: React.FC = () => {
   const [searchParams] = useSearchParams();
   const senderId = searchParams.get("senderId");
   const receiverId = searchParams.get("receiverId");
+  const roomId = searchParams.get("roomId");
 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [peer, setPeer] = useState<SimplePeer.Instance | null>(null);
@@ -103,6 +104,8 @@ const VideoCall: React.FC = () => {
     );
 
     setCurrentUser(response?.data?.data);
+
+    return response?.data?.data;
   };
 
   // TODO: Fix the issue with the camera
@@ -184,7 +187,92 @@ const VideoCall: React.FC = () => {
   //   };
   // }, []);
 
-  useEffect(() => {}, [clientRef?.connected, currentUser?.username]);
+  useEffect(() => {
+    if (clientRef) {
+      if (
+        JSON.parse(localStorage.getItem("info") || "0") ===
+        parseInt(senderId || "0")
+      ) {
+        const user = handleGetCurrentUser();
+
+        clientRef.subscribe(
+          `/queue/${currentUser.username}`,
+          (message: { body: string }) => {
+            const data = JSON.parse(message.body);
+            console.log(data);
+            if (data.type === "offer") {
+              const peer = new SimplePeer({
+                initiator: true,
+                trickle: false,
+                stream: stream!,
+              });
+
+              clientRef.subscribe(`/queue/${roomId}`, (message) => {
+                const data = JSON.parse(message.body);
+                if (data.type === "answer") {
+                  peer.signal(data.answer);
+                }
+              });
+
+              peer.on("signal", (offer) => {
+                clientRef.publish({
+                  destination: `/queue/${roomId}`,
+                  body: JSON.stringify({
+                    type: "offer",
+                    offer,
+                    roomId,
+                    senderId: currentUser.id,
+                  }),
+                });
+              });
+
+              peer.on("connect", () => {
+                console.log("Peer connected");
+              });
+
+              peer.on("data", (data) => {
+                console.log("Received data:", data);
+              });
+
+              peer.on("error", (err) => {
+                console.error("Peer error:", err);
+              });
+            } else {
+              console.log("got empty message");
+            }
+          }
+        );
+      } else {
+        clientRef.subscribe(`/queue/${roomId}`, (message) => {
+          const data = JSON.parse(message.body);
+          const peer = new SimplePeer({
+            initiator: false,
+            trickle: false,
+            stream: stream!,
+          });
+          peer.signal(data.offer);
+          peer.on("signal", (answer) => {
+            clientRef.publish({
+              destination: `/queue/${roomId}`,
+              body: JSON.stringify({ type: "answer", answer }),
+            });
+          });
+
+          peer.on("connect", () => {
+            console.log("Peer connected");
+          });
+
+          peer.on("data", (data) => {
+            console.log("Received data:", data);
+          });
+
+          peer.on("error", (err) => {
+            console.error("Peer error:", err);
+          });
+        });
+      }
+    }
+  }, [clientRef?.connected, currentUser?.username]);
 
   useEffect(() => {
     handleGetCurrentUser();
@@ -214,10 +302,6 @@ const VideoCall: React.FC = () => {
   //   });
   //   setPeer(peer);
   // };
-
-  useEffect(() => {
-    console.log(currentUser);
-  }, [currentUser]);
 
   return (
     <>
