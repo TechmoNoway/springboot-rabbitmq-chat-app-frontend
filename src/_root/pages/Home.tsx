@@ -18,7 +18,6 @@ import { useEffect, useState } from "react";
 import { IoIosCall } from "react-icons/io";
 import { IoClose } from "react-icons/io5";
 import { Outlet, useLocation } from "react-router-dom";
-import SimplePeer from "simple-peer";
 
 const Home = () => {
   const location = useLocation();
@@ -29,7 +28,6 @@ const Home = () => {
   const [latestReceivedMessage, setLatestReceivedMessage] =
     useState<any>();
   const basePath = location.pathname === "/";
-  const [peer, setPeer] = useState<SimplePeer.Instance | null>(null);
 
   const handleAcceptJoinCall = () => {
     if (stompClient && stompClient.connected) {

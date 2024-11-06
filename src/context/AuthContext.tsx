@@ -44,11 +44,6 @@ export const AuthProvider: React.FC<{
         try {
           dispatch(logoutAction());
           if (location.pathname !== "/sign-in") {
-            toast({
-              variant: "destructive",
-              title: "Opps! Login session expired",
-              description: "Please login again.",
-            });
             navigate("/sign-in");
           }
         } catch (error) {
@@ -81,6 +76,9 @@ export const AuthProvider: React.FC<{
         } else {
           dispatch(logoutAction());
           if (location.pathname !== "/sign-in") {
+            localStorage.removeItem("token");
+            localStorage.removeItem("info");
+            localStorage.removeItem("persist:root");
             toast({
               variant: "destructive",
               title: "Opps!Your last login session expired",

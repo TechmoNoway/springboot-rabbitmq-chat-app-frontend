@@ -26,6 +26,9 @@ import { FaPhoneSlash } from "react-icons/fa6";
 import { FiMic, FiMicOff } from "react-icons/fi";
 import { useSearchParams } from "react-router-dom";
 import SimplePeer from "simple-peer";
+import io from "socket.io-client";
+
+const socket = io("http://localhost:4000");
 
 const VideoCall: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -40,6 +43,8 @@ const VideoCall: React.FC = () => {
   const [isMicOn, setIsMicOn] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+
   // const clientRef = useRef<Client | null>(null);
   const clientRef = useWebSocket();
 
@@ -188,95 +193,92 @@ const VideoCall: React.FC = () => {
   // }, []);
 
   useEffect(() => {
-    if (clientRef) {
-      if (
-        JSON.parse(localStorage.getItem("info") || "0") ===
-        parseInt(senderId || "0")
-      ) {
-        const user = handleGetCurrentUser();
+    if (
+      JSON.parse(localStorage.getItem("info") || "0") ===
+      parseInt(senderId || "0")
+    ) {
+      const newPeer = new SimplePeer({
+        initiator: true,
+        trickle: false,
+        stream: videoRef.current?.srcObject as MediaStream,
+      });
 
-        clientRef.subscribe(
-          `/queue/${currentUser.username}`,
-          (message: { body: string }) => {
-            const data = JSON.parse(message.body);
-            console.log(data);
-            if (data.type === "offer") {
-              const peer = new SimplePeer({
-                initiator: true,
-                trickle: false,
-                stream: stream!,
-              });
+      newPeer.on("signal", (offer) => {
+        socket.emit("offer", { offer, senderId: currentUser.id });
+      });
 
-              clientRef.subscribe(`/queue/${roomId}`, (message) => {
-                const data = JSON.parse(message.body);
-                if (data.type === "answer") {
-                  peer.signal(data.answer);
-                }
-              });
+      newPeer.on("connect", () => {
+        console.log("Peer connected");
+      });
 
-              peer.on("signal", (offer) => {
-                clientRef.publish({
-                  destination: `/queue/${roomId}`,
-                  body: JSON.stringify({
-                    type: "offer",
-                    offer,
-                    roomId,
-                    senderId: currentUser.id,
-                  }),
-                });
-              });
+      newPeer.on("stream", (stream) => {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = stream;
+        }
+      });
 
-              peer.on("connect", () => {
-                console.log("Peer connected");
-              });
+      newPeer.on("data", (data) => {
+        console.log("Received data:", data);
+      });
 
-              peer.on("data", (data) => {
-                console.log("Received data:", data);
-              });
+      newPeer.on("error", (err) => {
+        console.error("Peer error:", err);
+      });
 
-              peer.on("error", (err) => {
-                console.error("Peer error:", err);
-              });
-            } else {
-              console.log("got empty message");
-            }
-          }
-        );
-      } else {
-        clientRef.subscribe(`/queue/${roomId}`, (message) => {
-          const data = JSON.parse(message.body);
-          const peer = new SimplePeer({
-            initiator: false,
-            trickle: false,
-            stream: stream!,
-          });
-          peer.signal(data.offer);
-          peer.on("signal", (answer) => {
-            clientRef.publish({
-              destination: `/queue/${roomId}`,
-              body: JSON.stringify({ type: "answer", answer }),
-            });
-          });
-
-          peer.on("connect", () => {
-            console.log("Peer connected");
-          });
-
-          peer.on("data", (data) => {
-            console.log("Received data:", data);
-          });
-
-          peer.on("error", (err) => {
-            console.error("Peer error:", err);
-          });
-        });
-      }
+      setPeer(newPeer);
     }
-  }, [clientRef?.connected, currentUser?.username]);
+    if (
+      JSON.parse(localStorage.getItem("info") || "0") ===
+      parseInt(receiverId || "0")
+    ) {
+      const newPeer = new SimplePeer({
+        initiator: true,
+        trickle: false,
+        stream: stream!,
+      });
+
+      newPeer.on("signal", (offer) => {
+        socket.emit("offer", { offer, senderId: currentUser.id });
+      });
+
+      socket.on("answer", (data) => {
+        newPeer.signal(data.answer);
+      });
+
+      newPeer.on("connect", () => {
+        console.log("Peer connected");
+      });
+
+      newPeer.on("stream", (stream) => {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = stream;
+        }
+      });
+
+      newPeer.on("data", (data) => {
+        console.log("Received data:", data);
+      });
+
+      newPeer.on("error", (err) => {
+        console.error("Peer error:", err);
+      });
+
+      setPeer(newPeer);
+    }
+  }, [senderId, receiverId, roomId, stream]);
 
   useEffect(() => {
     handleGetCurrentUser();
   }, []);
+
+  useEffect(() => {
+    if (clientRef) {
+      clientRef.subscribe(`/queue/${roomId}`, (message) => {
+        const data = JSON.parse(message.body);
+        console.log(data);
+      });
+    }
+  }, [clientRef]);
 
   useEffect(() => {
     getPartnerData();
@@ -308,15 +310,23 @@ const VideoCall: React.FC = () => {
       {/* <button onClick={callUser}>Call</button> */}
       <div className="flex flex-col h-screen w-screen justify-between bg-[#1c1c1c] text-foreground relative">
         <div className="flex flex-col items-center justify-center h-full mb-4 space-y-3">
-          <Avatar>
-            <AvatarImage
-              className="w-24 h-24"
-              src={dataPartner?.avatarUrl}
+          {remoteVideoRef.current ? (
+            <video
+              ref={remoteVideoRef}
+              autoPlay
+              className="absolute bottom-0 right-0 mb-5 mr-5 h-44 rounded-lg p-0"
             />
-            <AvatarFallback className="w-24 h-24 bg-slate-200 flex text-black items-center justify-center">
-              <p>{(dataPartner?.username)[0]}</p>
-            </AvatarFallback>
-          </Avatar>
+          ) : (
+            <Avatar>
+              <AvatarImage
+                className="w-24 h-24"
+                src={dataPartner?.avatarUrl}
+              />
+              <AvatarFallback className="w-24 h-24 bg-slate-200 flex text-black items-center justify-center">
+                <p>{(dataPartner?.username)[0]}</p>
+              </AvatarFallback>
+            </Avatar>
+          )}
           <h2 className="mt-2 text-2xl text-white font-bold">
             {dataPartner?.username}
           </h2>

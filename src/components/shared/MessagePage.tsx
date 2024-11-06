@@ -348,11 +348,14 @@ const MessagePage = () => {
       //   console.error("Peer error:", err);
       // });
 
+      localStorage.setItem("username", currentUser.username);
+
       stompClient.publish({
         destination: `/queue/${dataPartner.username}`,
         body: JSON.stringify({
           type: "offer",
           callerInfo: currentUser,
+          username: currentUser.username,
           linkRoomCall: `/videocall/?room=${roomId}&senderId=${currentUser.id}&receiverId=${dataPartner.id}`,
         }),
       });

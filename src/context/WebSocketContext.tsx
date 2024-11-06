@@ -30,7 +30,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       // debug: (str) => {
       //   console.log(new Date(), str);
       // },
-      // reconnectDelay: 5000,
+      reconnectDelay: 3000,
       // heartbeatIncoming: 2000,
       // heartbeatOutgoing: 2000,
     });
