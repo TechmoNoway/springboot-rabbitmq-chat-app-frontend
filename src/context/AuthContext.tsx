@@ -81,7 +81,7 @@ export const AuthProvider: React.FC<{
             localStorage.removeItem("persist:root");
             toast({
               variant: "destructive",
-              title: "Opps!Your last login session expired",
+              title: "Opps! Your last login session expired",
               description: "Please login again.",
             });
             navigate("/sign-in");

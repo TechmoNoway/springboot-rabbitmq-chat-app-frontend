@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/tooltip";
 import { useWebSocket } from "@/context/WebSocketContext";
 import { getCurrentUser } from "@/services/UserService";
-import { Client } from "@stomp/stompjs";
 import {
   LucideScreenShare,
   LucideScreenShareOff,
@@ -25,29 +24,21 @@ import {
 import { FaPhoneSlash } from "react-icons/fa6";
 import { FiMic, FiMicOff } from "react-icons/fi";
 import { useSearchParams } from "react-router-dom";
-import SimplePeer from "simple-peer";
-import io from "socket.io-client";
-
-const socket = io("http://localhost:4000");
 
 const VideoCall: React.FC = () => {
   const [searchParams] = useSearchParams();
   const senderId = searchParams.get("senderId");
   const receiverId = searchParams.get("receiverId");
   const roomId = searchParams.get("roomId");
-
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [peer, setPeer] = useState<SimplePeer.Instance | null>(null);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isMicOn, setIsMicOn] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
-
   // const clientRef = useRef<Client | null>(null);
   const clientRef = useWebSocket();
-
   const [dataPartner, setDataPartner] = useState({
     id: 0,
     username: "",
@@ -67,7 +58,6 @@ const VideoCall: React.FC = () => {
       const response = await getCurrentUser(
         parseInt(receiverId || "0")
       );
-
       if (response && response.data.data) {
         setDataPartner({
           ...response.data.data,
@@ -77,7 +67,6 @@ const VideoCall: React.FC = () => {
       const response = await getCurrentUser(
         parseInt(senderId || "0")
       );
-
       if (response && response.data.data) {
         setDataPartner({
           ...response.data.data,
@@ -107,14 +96,11 @@ const VideoCall: React.FC = () => {
     const response = await getCurrentUser(
       JSON.parse(localStorage.getItem("info") || "0")
     );
-
     setCurrentUser(response?.data?.data);
-
     return response?.data?.data;
   };
 
   // TODO: Fix the issue with the camera
-
   useEffect(() => {
     if (isCameraOn || isMicOn) {
       navigator.mediaDevices
@@ -138,10 +124,7 @@ const VideoCall: React.FC = () => {
         }
       }
     }
-  }, [isCameraOn, isMicOn]);
-
-  // useEffect(() => {
-  //   clientRef.current = new Client({
+  }, [isCameraOn, isMicOn]); //   clientRef.current = new Client({
   //     brokerURL: "ws://localhost:15674/ws",
   //     connectHeaders: {
   //       login: "guest",
@@ -156,7 +139,6 @@ const VideoCall: React.FC = () => {
   //     webSocketFactory: () =>
   //       new WebSocket("http://localhost:15674/ws"),
   //   });
-
   //   clientRef.current.onConnect = () => {
   //     // clientRef.current?.subscribe("/topic/signaling", (message) => {
   //     //   const data = JSON.parse(message.body);
@@ -184,88 +166,11 @@ const VideoCall: React.FC = () => {
   //     //   }
   //     // });
   //   };
-
   //   clientRef.current.activate();
-
   //   return () => {
   //     clientRef.current?.deactivate();
   //   };
   // }, []);
-
-  useEffect(() => {
-    if (
-      JSON.parse(localStorage.getItem("info") || "0") ===
-      parseInt(senderId || "0")
-    ) {
-      const newPeer = new SimplePeer({
-        initiator: true,
-        trickle: false,
-        stream: videoRef.current?.srcObject as MediaStream,
-      });
-
-      newPeer.on("signal", (offer) => {
-        socket.emit("offer", { offer, senderId: currentUser.id });
-      });
-
-      newPeer.on("connect", () => {
-        console.log("Peer connected");
-      });
-
-      newPeer.on("stream", (stream) => {
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = stream;
-        }
-      });
-
-      newPeer.on("data", (data) => {
-        console.log("Received data:", data);
-      });
-
-      newPeer.on("error", (err) => {
-        console.error("Peer error:", err);
-      });
-
-      setPeer(newPeer);
-    }
-    if (
-      JSON.parse(localStorage.getItem("info") || "0") ===
-      parseInt(receiverId || "0")
-    ) {
-      const newPeer = new SimplePeer({
-        initiator: true,
-        trickle: false,
-        stream: stream!,
-      });
-
-      newPeer.on("signal", (offer) => {
-        socket.emit("offer", { offer, senderId: currentUser.id });
-      });
-
-      socket.on("answer", (data) => {
-        newPeer.signal(data.answer);
-      });
-
-      newPeer.on("connect", () => {
-        console.log("Peer connected");
-      });
-
-      newPeer.on("stream", (stream) => {
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = stream;
-        }
-      });
-
-      newPeer.on("data", (data) => {
-        console.log("Received data:", data);
-      });
-
-      newPeer.on("error", (err) => {
-        console.error("Peer error:", err);
-      });
-
-      setPeer(newPeer);
-    }
-  }, [senderId, receiverId, roomId, stream]);
 
   useEffect(() => {
     handleGetCurrentUser();
@@ -284,30 +189,8 @@ const VideoCall: React.FC = () => {
     getPartnerData();
   }, [senderId, receiverId]);
 
-  // const callUser = () => {
-  //   const peer = new SimplePeer({
-  //     initiator: true,
-  //     trickle: false,
-  //     stream: stream!,
-  //   });
-
-  //   peer.on("signal", (offer) => {
-  //     clientRef.current?.publish({
-  //       destination: "/app/signal",
-  //       body: JSON.stringify({ type: "offer", offer }),
-  //     });
-  //   });
-  //   peer.on("stream", (stream) => {
-  //     if (videoRef.current) {
-  //       videoRef.current.srcObject = stream;
-  //     }
-  //   });
-  //   setPeer(peer);
-  // };
-
   return (
     <>
-      {/* <button onClick={callUser}>Call</button> */}
       <div className="flex flex-col h-screen w-screen justify-between bg-[#1c1c1c] text-foreground relative">
         <div className="flex flex-col items-center justify-center h-full mb-4 space-y-3">
           {remoteVideoRef.current ? (
@@ -350,7 +233,6 @@ const VideoCall: React.FC = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
           {/* Toggle Camera */}
           <TooltipProvider>
             <Tooltip>
@@ -374,7 +256,6 @@ const VideoCall: React.FC = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
           {/* Toggle Mic */}
           <TooltipProvider>
             <Tooltip>
@@ -398,7 +279,6 @@ const VideoCall: React.FC = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
           {/* End Call */}
           <TooltipProvider>
             <Tooltip>

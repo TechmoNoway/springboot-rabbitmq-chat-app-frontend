@@ -117,10 +117,12 @@ const EditUserDetails = ({ onClose, user }: Props) => {
         dispatch(
           setUser({
             ...user,
-            birthdate: selectedBirthdate?.getTime(),
+            birthdate: selectedBirthdate
+              ? selectedBirthdate.getTime().toString()
+              : "",
           })
         );
-        onClose();
+        // onClose();
       }
     } catch (error) {
       console.log(error);
@@ -236,7 +238,7 @@ const EditUserDetails = ({ onClose, user }: Props) => {
               onClick={onClose}
               className="border-primary border text-primary px-4 py-1 rounded hover:bg-primary hover:text-white"
             >
-              Cancel
+              Close
             </button>
             <button
               onClick={handleSubmit}

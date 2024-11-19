@@ -45,8 +45,10 @@ import MessageList from "./MessageList";
 import { IMessage } from "@/types";
 import EmojiPicker from "emoji-picker-react";
 import { useWebSocket } from "@/context/WebSocketContext";
-import generateRandomId from "../utils/generateRandomId";
-import SimplePeer from "simple-peer";
+import {
+  createMeeting,
+  generateToken,
+} from "@/services/VideoCallService";
 
 const MessagePage = () => {
   const params = useParams();
@@ -56,7 +58,6 @@ const MessagePage = () => {
 
   const [loading, setLoading] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
-  const [peer, setPeer] = useState<SimplePeer.Instance | null>(null);
 
   const [dataPartner, setDataPartner] = useState({
     id: 0,
@@ -308,55 +309,21 @@ const MessagePage = () => {
   };
 
   // TODO: Update the receiver massage when the user is being called
-  const handleSendCallNotify = () => {
+  const handleSendCallNotify = async () => {
     if (stompClient && stompClient.connected) {
-      const roomId = generateRandomId(10);
+      const response = await generateToken(
+        JSON.parse(localStorage.getItem("info") || "0")
+      );
 
-      // const peer = new SimplePeer({
-      //   initiator: true,
-      //   trickle: false,
-      // });
+      console.log(response?.data);
 
-      // peer.on("signal", (offer) => {
-      //   stompClient.publish({
-      //     destination: `/queue/${roomId}`,
-      //     body: JSON.stringify({
-      //       type: "offer",
-      //       offer,
-      //       roomId,
-      //       senderId: currentUser.id,
-      //     }),
-      //   });
-      // });
-
-      // stompClient.subscribe(`/queue/${roomId}`, (message) => {
-      //   const data = JSON.parse(message.body);
-      //   if (data.type === "answer") {
-      //     peer.signal(data.answer);
-      //   }
-      // });
-
-      // peer.on("connect", () => {
-      //   console.log("Peer connected");
-      // });
-
-      // peer.on("data", (data) => {
-      //   console.log("Received data:", data);
-      // });
-
-      // peer.on("error", (err) => {
-      //   console.error("Peer error:", err);
-      // });
-
-      localStorage.setItem("username", currentUser.username);
+      const roomId = await createMeeting({ token: response?.data });
 
       stompClient.publish({
         destination: `/queue/${dataPartner.username}`,
         body: JSON.stringify({
           type: "offer",
-          callerInfo: currentUser,
-          username: currentUser.username,
-          linkRoomCall: `/videocall/?room=${roomId}&senderId=${currentUser.id}&receiverId=${dataPartner.id}`,
+          linkRoomCall: `/test/?room=${roomId}&senderId=${currentUser.id}&receiverId=${dataPartner.id}`,
         }),
       });
 
@@ -366,7 +333,7 @@ const MessagePage = () => {
       const top = window.screen.height / 2 - height / 2 - 40;
 
       window.open(
-        `/videocall/?room=${roomId}&senderId=${currentUser.id}&receiverId=${dataPartner.id}`,
+        `/test/?room=${roomId}&senderId=${currentUser.id}&receiverId=${dataPartner.id}`,
         "_blank",
         `width=${width},height=${height},left=${left},top=${top}`
       );
@@ -374,50 +341,6 @@ const MessagePage = () => {
       console.error("STOMP client is not connected");
     }
   };
-
-  // const handleSendCallNotify = () => {
-  //   if (stompClient && stompClient.connected) {
-  //     const roomId = generateRandomId(10);
-
-  //     const peer = new SimplePeer({
-  //       initiator: true,
-  //       trickle: false,
-  //     });
-
-  //     peer.on("signal", (offer) => {
-  //       stompClient.publish({
-  //         destination: `/queue/${roomId}`,
-  //         body: JSON.stringify({
-  //           type: "offer",
-  //           offer,
-  //           roomId,
-  //           senderId: currentUser.id,
-  //         }),
-  //       });
-  //     });
-
-  //     stompClient.subscribe(`/queue/${roomId}`, (message) => {
-  //       const data = JSON.parse(message.body);
-  //       if (data.type === "answer") {
-  //         peer.signal(data.answer);
-  //       }
-  //     });
-
-  //     peer.on("connect", () => {
-  //       console.log("Peer connected");
-  //     });
-
-  //     peer.on("data", (data) => {
-  //       console.log("Received data:", data);
-  //     });
-
-  //     peer.on("error", (err) => {
-  //       console.error("Peer error:", err);
-  //     });
-  //   } else {
-  //     console.error("STOMP client is not connected");
-  //   }
-  // };
 
   useEffect(() => {
     getAllMessages();

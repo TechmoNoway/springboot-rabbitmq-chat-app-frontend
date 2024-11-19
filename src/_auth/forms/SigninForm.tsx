@@ -112,9 +112,6 @@ function SigninForm() {
       setIsLoading(false);
       login(JSON.stringify(response.data.data.accessToken));
       navigate("/");
-      toast({
-        title: "Login successfully",
-      });
     } else {
       setIsLoading(false);
       toast({
