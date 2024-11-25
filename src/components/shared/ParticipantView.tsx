@@ -6,13 +6,18 @@ interface ParticipantViewProps {
   participantId: string;
   className?: string;
   currentUser: any;
+  partnerInfo: any;
+  index: number;
 }
 
 const ParticipantView: React.FC<ParticipantViewProps> = ({
   participantId,
-  className,
   currentUser,
+  partnerInfo,
+  index,
 }) => {
+  console.log(participantId);
+
   const micRef = useRef<HTMLAudioElement>(null);
   const webcamRef = useRef<HTMLVideoElement>(null);
   const { webcamStream, micStream, webcamOn, micOn, isLocal } =
@@ -63,8 +68,11 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({
   }, [micStream, micOn]);
 
   return (
-    <div key={participantId}>
-      <audio ref={micRef} autoPlay muted={micOn} />
+    <div
+      key={participantId}
+      className="flex items-center justify-center"
+    >
+      <audio ref={micRef} autoPlay playsInline muted={isLocal} />
       {webcamOn ? (
         // <ReactPlayer
         //   playsinline
@@ -85,21 +93,39 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({
           muted={true}
           ref={webcamRef}
           autoPlay
-          className={className}
+          className={
+            index === 0
+              ? "absolute bottom-0 right-0 mb-5 mr-5 h-44 rounded-lg p-0"
+              : "mb-4 rounded-lg w-[1000px]"
+          }
         />
       ) : (
         <>
           {/* absolute bottom-4 right-0 mb-8 mr-5 rounded-lg p-0
           bg-neutral-900 h-44 w-44 flex justify-center items-center
           shadow-lg */}
-          <div className={className}>
+          <div
+            className={
+              index === 0
+                ? "absolute flex items-center justify-center bottom-0 right-0 mb-5 mr-5 h-44 rounded-lg px-20 shadow-xl bg-opacity-10 bg-[#292929]"
+                : "mb-4 space-y-3"
+            }
+          >
             <Avatar>
               <AvatarImage
                 className="w-16 h-16"
-                src={currentUser?.avatarUrl}
+                src={
+                  index === 0
+                    ? currentUser?.avatarUrl
+                    : partnerInfo?.avatarUrl
+                }
               />
               <AvatarFallback className="w-16 h-16 bg-slate-200 flex text-black items-center justify-center">
-                <p>{currentUser?.username[0]}</p>
+                <p>
+                  {index === 0
+                    ? currentUser?.username[0]
+                    : partnerInfo?.username[0]}
+                </p>
               </AvatarFallback>
             </Avatar>
           </div>
