@@ -71,15 +71,15 @@ const Test: React.FC = () => {
 
   useEffect(() => {
     getMeetingAndToken();
-    console.log("getMeetingAndToken");
-  }, [meetingToken == null]);
-
-  useEffect(() => {
     hanldeGetPartnerInfo();
     handleGetCurrentUser();
     console.log("hanldeGetPartnerInfo");
     console.log("handleGetCurrentUser");
-  }, [partnerInfo == null, currentUser == null]);
+  }, [
+    partnerInfo == null,
+    currentUser == null,
+    meetingToken == null,
+  ]);
 
   return meetingToken && meetingId ? (
     <div className="bg-[#1c1c1c] h-screen w-screen">
@@ -95,7 +95,6 @@ const Test: React.FC = () => {
       >
         {currentUser && (
           <MeetingView
-            meetingId={meetingId}
             onMeetingLeave={onMeetingLeave}
             currentUser={currentUser}
             partnerInfo={partnerInfo}

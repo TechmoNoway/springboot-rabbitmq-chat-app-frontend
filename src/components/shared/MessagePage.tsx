@@ -333,7 +333,7 @@ const MessagePage = () => {
       const top = window.screen.height / 2 - height / 2 - 40;
 
       window.open(
-        `/test/?room=${roomId}&senderId=${currentUser.id}&receiverId=${dataPartner.id}`,
+        `/videocall/?room=${roomId}&senderId=${currentUser.id}&receiverId=${dataPartner.id}`,
         "_blank",
         `width=${width},height=${height},left=${left},top=${top}`
       );
@@ -431,7 +431,7 @@ const MessagePage = () => {
 
   return (
     <div className="bg-no-repeat bg-cover">
-      <header className="sticky top-0 h-16 bg-white flex justify-between items-center px-4 drop-shadow-lg">
+      <header className="sticky top-0 h-16 bg-white flex justify-between items-center px-4 shadow-xl">
         <div className="flex items-center gap-4">
           <Link to={"/"} className="lg:hidden">
             <FaAngleLeft size={25} />

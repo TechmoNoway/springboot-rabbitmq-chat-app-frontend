@@ -11,7 +11,7 @@ import { AuthProvider } from "./context/AuthContext.tsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <Router>
-    <GoogleOAuthProvider clientId="39476822030-m15g24ckmabv4h6dbfjb7ir5bu40ovgi.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_API_GOOGLE_CLOUD_CLIENT_ID}>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <AuthProvider>

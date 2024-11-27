@@ -15,16 +15,15 @@ import {
 } from "react-icons/bs";
 import { FaPhoneSlash } from "react-icons/fa6";
 import { FiMic, FiMicOff } from "react-icons/fi";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 interface MeetingViewProps {
   onMeetingLeave: () => void;
-  meetingId: string;
   currentUser: any;
   partnerInfo: any;
 }
 
 const MeetingView: React.FC<MeetingViewProps> = ({
   onMeetingLeave,
-  meetingId,
   currentUser,
   partnerInfo,
 }) => {
@@ -69,12 +68,29 @@ const MeetingView: React.FC<MeetingViewProps> = ({
 
   useEffect(() => {
     if (currentUser && partnerInfo) {
+      console.log("called");
+
       joinMeeting();
     }
   }, [currentUser, partnerInfo]);
 
   return (
     <div className="flex flex-col h-screen w-screen justify-between bg-[#1c1c1c] text-foreground relative">
+      {[...participants.keys()].length === 1 && (
+        <div className="flex flex-col items-center justify-center h-full space-y-3">
+          <Avatar>
+            <AvatarImage
+              className="w-16 h-16"
+              src={partnerInfo?.avatarUrl}
+            />
+            <AvatarFallback className="w-16 h-16 bg-slate-200 flex text-black items-center justify-center">
+              <p>{partnerInfo?.username[0]}</p>
+            </AvatarFallback>
+          </Avatar>
+          <p className="text-2xl">Calling...</p>{" "}
+        </div>
+      )}
+
       {[...participants.keys()].map((participantId, index) => {
         if (index >= 2) {
           return;

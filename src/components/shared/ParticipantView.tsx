@@ -1,6 +1,5 @@
-import { useParticipant } from "@videosdk.live/react-sdk";
+import { useMeeting, useParticipant } from "@videosdk.live/react-sdk";
 import { useEffect, useMemo, useRef } from "react";
-import ReactPlayer from "react-player";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 interface ParticipantViewProps {
   participantId: string;
@@ -22,6 +21,7 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({
   const webcamRef = useRef<HTMLVideoElement>(null);
   const { webcamStream, micStream, webcamOn, micOn, isLocal } =
     useParticipant(participantId);
+  const { toggleMic, toggleWebcam } = useMeeting();
 
   // const videoStream = useMemo(() => {
   //   if (webcamOn && webcamStream) {
@@ -30,6 +30,13 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({
   //     return mediaStream;
   //   }
   // }, [webcamStream, webcamOn]);
+
+  useEffect(() => {
+    if (webcamOn && micOn) {
+      toggleMic();
+      toggleWebcam();
+    }
+  }, []);
 
   useEffect(() => {
     if (webcamRef.current) {
@@ -72,31 +79,18 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({
       key={participantId}
       className="flex items-center justify-center"
     >
-      <audio ref={micRef} autoPlay playsInline muted={isLocal} />
+      <audio ref={micRef} autoPlay playsInline muted={!isLocal} />
       {webcamOn ? (
-        // <ReactPlayer
-        //   playsinline
-        //   pip={false}
-        //   light={false}
-        //   controls={false}
-        //   muted={true}
-        //   playing={true}
-        //   url={videoStream}
-        //   height={"200px"}
-        //   width={"300px"}
-        //   onError={(err) => {
-        //     console.log(err, "participant video error");
-        //   }}
-        // />
         <video
           playsInline
           muted={true}
+          controls={false}
           ref={webcamRef}
           autoPlay
           className={
             index === 0
-              ? "absolute bottom-0 right-0 mb-5 mr-5 h-44 rounded-lg p-0"
-              : "mb-4 rounded-lg w-[1000px]"
+              ? "absolute bottom-0 right-0 mb-5 mr-5 h-36 rounded-lg p-0"
+              : "mb-4 rounded-lg w-[900px] border-2 border-black"
           }
         />
       ) : (
@@ -107,7 +101,7 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({
           <div
             className={
               index === 0
-                ? "absolute flex items-center justify-center bottom-0 right-0 mb-5 mr-5 h-44 rounded-lg px-20 shadow-xl bg-opacity-10 bg-[#292929]"
+                ? "absolute flex items-center justify-center bottom-0 right-0 mb-5 mr-5 h-36 rounded-lg px-20 shadow-xl bg-opacity-10 bg-[#292929]"
                 : "mb-4 space-y-3"
             }
           >

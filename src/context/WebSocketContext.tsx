@@ -27,12 +27,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       webSocketFactory: () =>
         new WebSocket("ws://localhost:15674/ws"),
 
-      // debug: (str) => {
-      //   console.log(new Date(), str);
-      // },
+      debug: (str) => {
+        console.log(new Date(), str);
+      },
       reconnectDelay: 3000,
-      // heartbeatIncoming: 2000,
-      // heartbeatOutgoing: 2000,
+      heartbeatIncoming: 2000,
+      heartbeatOutgoing: 2000,
     });
 
     client.onConnect = () => {
