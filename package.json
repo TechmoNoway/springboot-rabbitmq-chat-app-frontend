@@ -21,7 +21,6 @@
     "@react-oauth/google": "^0.12.1",
     "@reduxjs/toolkit": "^2.3.0",
     "@stomp/stompjs": "^7.0.0",
-    "@videosdk.live/react-sdk": "^0.1.103",
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",

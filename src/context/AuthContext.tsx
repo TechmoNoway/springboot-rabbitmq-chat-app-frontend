@@ -43,7 +43,10 @@ export const AuthProvider: React.FC<{
       if (!token) {
         try {
           dispatch(logoutAction());
-          if (location.pathname !== "/sign-in") {
+          if (
+            location.pathname !== "/sign-in" &&
+            location.pathname !== "/sign-up"
+          ) {
             navigate("/sign-in");
           }
         } catch (error) {

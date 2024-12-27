@@ -7,7 +7,7 @@ import { FaPlus } from "react-icons/fa6";
 import { FaImage } from "react-icons/fa6";
 import { FaVideo } from "react-icons/fa6";
 import { IoAddCircle } from "react-icons/io5";
-import { IoIosCall, IoMdSend } from "react-icons/io";
+import { IoMdSend } from "react-icons/io";
 import uploadFile from "../utils/uploadFile";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { AvatarFallback } from "@radix-ui/react-avatar";
@@ -45,10 +45,7 @@ import MessageList from "./MessageList";
 import { IMessage } from "@/types";
 import EmojiPicker from "emoji-picker-react";
 import { useWebSocket } from "@/context/WebSocketContext";
-import {
-  createMeeting,
-  generateToken,
-} from "@/services/VideoCallService";
+
 
 const MessagePage = () => {
   const params = useParams();
@@ -308,40 +305,6 @@ const MessagePage = () => {
     }
   };
 
-  // TODO: Update the receiver massage when the user is being called
-  const handleSendCallNotify = async () => {
-    if (stompClient && stompClient.connected) {
-      const response = await generateToken(
-        JSON.parse(localStorage.getItem("info") || "0")
-      );
-
-      console.log(response?.data);
-
-      const roomId = await createMeeting({ token: response?.data });
-
-      stompClient.publish({
-        destination: `/queue/${dataPartner.username}`,
-        body: JSON.stringify({
-          type: "offer",
-          linkRoomCall: `/test/?room=${roomId}&senderId=${currentUser.id}&receiverId=${dataPartner.id}`,
-        }),
-      });
-
-      const width = 1200;
-      const height = 700;
-      const left = window.screen.width / 2 - width / 2;
-      const top = window.screen.height / 2 - height / 2 - 40;
-
-      window.open(
-        `/videocall/?room=${roomId}&senderId=${currentUser.id}&receiverId=${dataPartner.id}`,
-        "_blank",
-        `width=${width},height=${height},left=${left},top=${top}`
-      );
-    } else {
-      console.error("STOMP client is not connected");
-    }
-  };
-
   useEffect(() => {
     getAllMessages();
     getPartnerData();
@@ -560,12 +523,6 @@ const MessagePage = () => {
         </div>
 
         <div className="space-x-3">
-          <button
-            onClick={handleSendCallNotify}
-            className="cursor-pointer hover:text-primary"
-          >
-            <IoIosCall className="w-4 h-4" />
-          </button>
           <button className="cursor-pointer hover:text-primary">
             <HiDotsVertical className="w-4 h-4" />
           </button>
