@@ -104,7 +104,6 @@ function SigninForm() {
     },
   });
 
-  //TODO: Update the login function
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     const response = await doLogin(values);
