@@ -19,6 +19,7 @@ interface AuthContextProps {
   currentUser: any;
   token: string | null;
   login: (token: string) => void;
+  loginWithGoogle: (token: string) => void;
   logout: () => void;
 }
 
@@ -54,7 +55,12 @@ export const AuthProvider: React.FC<{
         }
       } else {
         const decodedToken: any = jwtDecode(token);
+        console.log(decodedToken.exp);
+        console.log(decodedToken.sub);
+
         const currentUnixTimestamp = Math.floor(Date.now() / 1000);
+
+        console.log(currentUnixTimestamp);
 
         if (
           decodedToken.exp &&
@@ -101,6 +107,11 @@ export const AuthProvider: React.FC<{
     setToken(newToken);
   };
 
+  const loginWithGoogle = (newToken: string) => {
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("info");
@@ -113,7 +124,7 @@ export const AuthProvider: React.FC<{
 
   return (
     <AuthContext.Provider
-      value={{ currentUser, token, login, logout }}
+      value={{ currentUser, token, login, loginWithGoogle, logout }}
     >
       {children}
     </AuthContext.Provider>

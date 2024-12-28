@@ -37,7 +37,7 @@ const formSchema = z.object({
 function SigninForm() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -49,9 +49,7 @@ function SigninForm() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const checkGoogleAuthUser = () => {};
-
-  const loginWithGoogle = useGoogleLogin({
+  const submitWithGoogle = useGoogleLogin({
     onSuccess: async (credentialResponse) => {
       try {
         const userInfo = await axios.get(
@@ -76,8 +74,7 @@ function SigninForm() {
         console.log(googleLoginResponse);
 
         if (googleLoginResponse?.data.status == 200) {
-          localStorage.setItem(
-            "token",
+          loginWithGoogle(
             JSON.stringify(googleLoginResponse.data.data.accessToken)
           );
           navigate("/");
@@ -202,7 +199,7 @@ function SigninForm() {
               </Button>
               <Button
                 className="bg-white w-full text-black border-[1px] border-black space-x-2 hover:text-white"
-                onClick={() => loginWithGoogle()}
+                onClick={() => submitWithGoogle()}
                 type="button"
               >
                 <FcGoogle className="w-6 h-6" /> <p>Google</p>
