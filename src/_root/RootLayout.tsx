@@ -18,17 +18,15 @@ const RootLayout = () => {
 
   return (
     <>
-      <div>
-        <div className="w-full md:flex">
-          {/* <Topbar />
+      <div className="w-full md:flex">
+        {/* <Topbar />
           <LeftSidebar /> */}
 
-          <section className="flex flex-1 h-full">
-            <Outlet />
-          </section>
+        <section className="flex flex-1 h-full">
+          <Outlet />
+        </section>
 
-          {/* <Bottombar /> */}
-        </div>
+        {/* <Bottombar /> */}
       </div>
     </>
   );
