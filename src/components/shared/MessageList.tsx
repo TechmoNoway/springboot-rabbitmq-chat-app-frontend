@@ -47,9 +47,9 @@ const MessageList = ({
               <div key={index}>
                 <div>
                   {msg.mediaType === "text" && (
-                    <div className="flex items-start gap-2.5">
+                    <div className="flex items-start gap-2.5 ">
                       {currentUser.id !== msg.senderId && (
-                        <Avatar>
+                        <Avatar className="border-[1px] border-gray-300">
                           <AvatarImage
                             className="w-8 h-8"
                             src={dataPartner?.avatarUrl}

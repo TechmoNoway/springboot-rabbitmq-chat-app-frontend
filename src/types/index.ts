@@ -35,6 +35,18 @@ export type IUser = {
   isBlocked: boolean;
 };
 
+export type IPartnerData = {
+  id: number;
+  username: string;
+  email: string;
+  avatarUrl: string;
+  isActive: boolean;
+  birthdate: string;
+  phoneNumber: string;
+  status: string;
+  isBlocked: boolean;
+};
+
 export type IMessage = {
   senderId: number;
   receiverId: number;

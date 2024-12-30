@@ -42,19 +42,18 @@ import {
   getUserStatus,
 } from "@/services/UserService";
 import { IMessage } from "@/types";
-import { set } from "date-fns";
 import EmojiPicker from "emoji-picker-react";
-import { PanelLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { BsEmojiSmileFill, BsPersonFillCheck } from "react-icons/bs";
 import { FaPlus } from "react-icons/fa";
 import { FaAngleLeft, FaImage, FaVideo } from "react-icons/fa6";
+import { HiDotsVertical } from "react-icons/hi";
 import { IoMdSend } from "react-icons/io";
 import { IoAddCircle } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 
-export default function MessagePage() {
+export default function Test() {
   const params = useParams();
   const dispatch = useDispatch();
   const currentUser = useSelector((state: any) => state?.auth);
@@ -62,7 +61,6 @@ export default function MessagePage() {
 
   const [loading, setLoading] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
 
   const [dataPartner, setDataPartner] = useState({
     id: 0,
@@ -370,7 +368,7 @@ export default function MessagePage() {
   const handleCheckUserIsFriend = async () => {
     const response = await checkIsFriend(
       currentUser.id,
-      dataPartner.id
+      currentUser.id
     );
     if (response?.status === 200) {
       setIsFriend(response?.data.data);
@@ -402,7 +400,7 @@ export default function MessagePage() {
 
   return (
     <>
-      <SidebarProvider defaultOpen={false} open={isRightSidebarOpen}>
+      <SidebarProvider className="">
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <div className="flex items-center gap-4">
@@ -410,22 +408,105 @@ export default function MessagePage() {
                 <FaAngleLeft size={25} />
               </Link>
               <div className="relative">
-                <Button
-                  className="w-12 h-12 rounded-full bg-transparent hover:bg-transparent"
-                  onClick={() =>
-                    setIsRightSidebarOpen(!isRightSidebarOpen)
-                  }
-                >
-                  <Avatar>
-                    <AvatarImage
-                      className="w-12 h-12"
-                      src={dataPartner?.avatarUrl}
-                    />
-                    <AvatarFallback className="w-12 h-12 bg-slate-200 flex text-black items-center justify-center">
-                      <p>{(dataPartner?.username)[0]}</p>
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="w-12 h-12 rounded-full bg-transparent hover:bg-transparent">
+                      <Avatar>
+                        <AvatarImage
+                          className="w-12 h-12"
+                          src={dataPartner?.avatarUrl}
+                        />
+                        <AvatarFallback className="w-12 h-12 bg-slate-200 flex text-black items-center justify-center">
+                          <p>{(dataPartner?.username)[0]}</p>
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Account Info</DialogTitle>
+                    </DialogHeader>
+                    <Divider />
+                    <div className="flex items-center space-x-6">
+                      <div className="relative">
+                        <Avatar>
+                          <AvatarImage
+                            className="w-28 h-28 rounded-full shadow-md"
+                            src={dataPartner?.avatarUrl}
+                          />
+
+                          <AvatarFallback className="w-28 h-28 rounded-full shadow-md bg-slate-200 flex items-center justify-center">
+                            <p className="text-black text-2xl">
+                              {(dataPartner?.username)[0]}
+                            </p>
+                          </AvatarFallback>
+                        </Avatar>
+                        {dataPartner?.status === "online" && (
+                          <div className="absolute bg-green-600 p-[8px] bottom-2 -right-[-6px] z-10 rounded-full"></div>
+                        )}
+                        {dataPartner?.status === "away" && (
+                          <div className="absolute bg-yellow-500 p-[8px] bottom-2 -right-[-6px] z-10 rounded-full"></div>
+                        )}
+                      </div>
+                      <div className="font-semibold text-xl">
+                        {dataPartner?.username}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 py-2">
+                      <div className="grid grid-cols-2 gap-4 items-center">
+                        {isFriend ? (
+                          <Button
+                            className="col-span-1 bg-blue-200 hover:bg-blue-300  text-black space-x-1"
+                            onClick={handleRemoveFriend}
+                          >
+                            <BsPersonFillCheck className="w-4 h-4" />
+                            <p>Is friend</p>
+                          </Button>
+                        ) : (
+                          <Button
+                            className="col-span-1 bg-gray-200 hover:bg-gray-300 text-black space-x-1"
+                            onClick={handleAddFriend}
+                          >
+                            <IoAddCircle className="w-5 h-5" />
+                            <p> Add friend</p>
+                          </Button>
+                        )}
+                        <Button className="col-span-1 bg-gray-200 hover:bg-gray-300 text-black">
+                          <Link
+                            to={`/${dataPartner?.id}`}
+                            className="w-full h-full"
+                          >
+                            Text
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                    <Divider />
+                    <div className="grid gap-4 pb-2">
+                      <div className="grid grid-cols-3 gap-4 items-center">
+                        <Label htmlFor="username">Email</Label>
+                        <div className="col-span-1">
+                          {dataPartner?.email}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 items-center">
+                        <Label htmlFor="birthdate">Birthdate</Label>
+                        <div className="col-span-1">
+                          {dataPartner?.birthdate || "../../...."}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 items-center">
+                        <Label htmlFor="phoneNumber">
+                          Phone Number
+                        </Label>
+                        <div className="col-span-1">
+                          {dataPartner?.phoneNumber || ".........."}
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 {dataPartner?.status === "online" && (
                   <div className="absolute bg-green-600 p-[6px] bottom-1 -right-[2px] z-10 rounded-full"></div>
                 )}
@@ -451,17 +532,21 @@ export default function MessagePage() {
               </div>
             </div>
 
-            <Button
-              className="ml-auto"
-              variant="ghost"
-              onClick={() =>
-                setIsRightSidebarOpen(!isRightSidebarOpen)
-              }
-            >
-              <PanelLeft className="w-6 h-6" />
-            </Button>
+            <div className="space-x-3">
+              <button className="cursor-pointer hover:text-primary">
+                <HiDotsVertical className="w-4 h-4" />
+              </button>
+            </div>
+            <SidebarTrigger className="ml-auto" />
           </header>
           <div className="flex flex-1 flex-col">
+            {/* <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+              <div className="aspect-video rounded-xl bg-muted/50" />
+              <div className="aspect-video rounded-xl bg-muted/50" />
+              <div className="aspect-video rounded-xl bg-muted/50" />
+            </div>
+            <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" /> */}
+            {/***show all message */}
             <MessageList
               currentMessage={currentMessage}
               allMessage={allMessage}
@@ -564,14 +649,7 @@ export default function MessagePage() {
             )}
           </div>
         </SidebarInset>
-        <RightSidebar
-          side="right"
-          partnerData={dataPartner}
-          isFriend={isFriend}
-          handleAddFriend={handleAddFriend}
-          handleRemoveFriend={handleRemoveFriend}
-          className="shadow-xl"
-        />
+        <RightSidebar side="right" />
       </SidebarProvider>
     </>
   );
