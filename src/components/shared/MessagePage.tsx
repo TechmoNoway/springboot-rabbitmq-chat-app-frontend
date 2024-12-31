@@ -1,4 +1,3 @@
-import Divider from "@/components/shared/Divider";
 import MessageList from "@/components/shared/MessageList";
 import { RightSidebar } from "@/components/shared/RightSidebar";
 import {
@@ -8,14 +7,6 @@ import {
 } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -23,7 +14,6 @@ import {
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import uploadFile from "@/components/utils/uploadFile";
 import { useWebSocket } from "@/context/WebSocketContext";
@@ -42,15 +32,13 @@ import {
   getUserStatus,
 } from "@/services/UserService";
 import { IMessage } from "@/types";
-import { set } from "date-fns";
 import EmojiPicker from "emoji-picker-react";
 import { PanelLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { BsEmojiSmileFill, BsPersonFillCheck } from "react-icons/bs";
+import { BsEmojiSmileFill } from "react-icons/bs";
 import { FaPlus } from "react-icons/fa";
 import { FaAngleLeft, FaImage, FaVideo } from "react-icons/fa6";
 import { IoMdSend } from "react-icons/io";
-import { IoAddCircle } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 
@@ -63,7 +51,6 @@ export default function MessagePage() {
   const [loading, setLoading] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
-
   const [dataPartner, setDataPartner] = useState({
     id: 0,
     username: "",
