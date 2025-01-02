@@ -1,4 +1,4 @@
-import { IMessage } from "@/types";
+import { ISaveMessage } from "@/types";
 import axios from "axios";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -29,9 +29,21 @@ export const getMessagesBetweenTwoUsers = (
   }
 };
 
-export const saveMessage = (messageForm: IMessage) => {
+export const saveMessage = (messageForm: ISaveMessage) => {
   try {
     const res = API.post(`api/v1/messages/saveMessage`, messageForm);
+    return res;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const deleteMessage = (messageId: number) => {
+  try {
+    const res = API.delete(
+      `api/v1/messages/deleteMessage?messageId=${messageId}`
+    );
     return res;
   } catch (error) {
     console.log(error);

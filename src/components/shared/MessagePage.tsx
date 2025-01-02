@@ -24,6 +24,7 @@ import {
   removeFriend,
 } from "@/services/FriendService";
 import {
+  deleteMessage,
   getMessagesBetweenTwoUsers,
   saveMessage,
 } from "@/services/MessageService";
@@ -207,8 +208,8 @@ export default function MessagePage() {
             timestamp: newMessage.timestamp.toISOString(),
           },
         ]);
-        const saveMessageResponse = await saveMessage(newMessage);
-        console.log(saveMessageResponse);
+        await saveMessage(newMessage);
+        getAllMessages();
         setMessage({
           text: "",
           imageUrl: "",
@@ -297,6 +298,15 @@ export default function MessagePage() {
       } else {
         console.error("STOMP client is not connected");
       }
+    }
+  };
+
+  const handleDeleteMessage = async (id: number) => {
+    const response = await deleteMessage(id);
+    if (response?.status === 200) {
+      setAllMessage((prev) =>
+        prev.filter((message) => message.id !== id)
+      );
     }
   };
 
@@ -460,6 +470,7 @@ export default function MessagePage() {
               handleSendImageMessage={handleSendImageMessage}
               handleClearUploadVideo={handleClearUploadVideo}
               handleSendVideoMessage={handleSendVideoMessage}
+              handleDeleteMessage={handleDeleteMessage}
             />
 
             {/**send message */}

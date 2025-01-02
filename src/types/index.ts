@@ -48,6 +48,17 @@ export type IPartnerData = {
 };
 
 export type IMessage = {
+  id: number;
+  senderId: number;
+  receiverId: number;
+  content: string;
+  status: string;
+  mediaType: string;
+  mediaUrl: string;
+  timestamp: Date | undefined;
+};
+
+export type ISaveMessage = {
   senderId: number;
   receiverId: number;
   content: string;
