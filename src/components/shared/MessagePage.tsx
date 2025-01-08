@@ -529,6 +529,14 @@ export default function MessagePage() {
                       type="text"
                       placeholder="Type here message..."
                       className="outline-none w-full h-full bg-transparent"
+                      onKeyDown={(e) => {
+                        if (
+                          e.key === " " &&
+                          e.currentTarget.value.length === 0
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
                       value={message.text}
                       onChange={handleOnChange}
                     />

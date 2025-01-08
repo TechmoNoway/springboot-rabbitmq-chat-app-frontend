@@ -103,7 +103,7 @@ const EditUserDetails = ({ onClose, user }: Props) => {
         username: data.username,
         avatarUrl: data.avatarUrl,
         email: data.email,
-        birthdate: selectedBirthdate,
+        birthdate: selectedBirthdate || new Date(user.birthdate),
         phoneNumber: data.phoneNumber,
       };
 
@@ -119,7 +119,7 @@ const EditUserDetails = ({ onClose, user }: Props) => {
             ...user,
             birthdate: selectedBirthdate
               ? selectedBirthdate.getTime().toString()
-              : "",
+              : user.birthdate,
           })
         );
         // onClose();

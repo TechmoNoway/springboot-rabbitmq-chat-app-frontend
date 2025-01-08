@@ -102,7 +102,7 @@ export function RightSidebar({
             <div className="">
               {partnerData?.birthdate
                 ? new Date(partnerData.birthdate).toLocaleDateString()
-                : "N/A"}
+                : "../../...."}
             </div>
           </div>
           <div className="items-center">

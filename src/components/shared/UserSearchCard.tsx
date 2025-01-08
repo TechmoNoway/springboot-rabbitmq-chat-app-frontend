@@ -61,7 +61,7 @@ const UserSearchCard = ({ user, onClose }: Props) => {
         <DialogTrigger asChild>
           <Button
             variant="outline"
-            className="w-full flex justify-start items-center gap-3 p-2 lg:px-2 lg:py-8  border-transparent hover:bg-blue-200 rounded cursor-pointer shadow-md"
+            className="w-full flex justify-start items-center gap-3 p-2 lg:px-2 lg:py-8 py-8 border-[1px] border-gray-200 hover:bg-blue-200 rounded cursor-pointer shadow-md"
           >
             <Avatar>
               <AvatarImage
@@ -142,7 +142,9 @@ const UserSearchCard = ({ user, onClose }: Props) => {
             <div className="grid grid-cols-3 gap-4 items-center">
               <Label htmlFor="birthdate">Birthdate</Label>
               <div className="col-span-1">
-                {user?.birthdate || "../../...."}
+                {user.birthdate
+                  ? new Date(user.birthdate).toLocaleDateString()
+                  : "../../...."}
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4 items-center">

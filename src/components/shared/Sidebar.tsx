@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { IoChatbubbleEllipses } from "react-icons/io5";
-import { FaUserPlus } from "react-icons/fa";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
 import { FiArrowUpLeft } from "react-icons/fi";
@@ -30,7 +29,6 @@ const Sidebar = () => {
   const [friendListData, setFriendListData] = useState<IFriendSide[]>(
     []
   );
-  const [openSearchUser, setOpenSearchUser] = useState(false);
   const navigate = useNavigate();
 
   const getListFriendData = async () => {
@@ -104,13 +102,8 @@ const Sidebar = () => {
             <IoChatbubbleEllipses size={20} />
           </NavLink>
 
-          <div
-            title="add friend"
-            onClick={() => setOpenSearchUser(true)}
-            className="w-12 h-12 flex justify-center items-center cursor-pointer hover:bg-slate-200 rounded"
-          >
-            <FaUserPlus size={20} />
-          </div>
+          {/**search user */}
+          <SearchUser />
         </div>
 
         <div className="flex flex-col items-center">
@@ -273,11 +266,6 @@ const Sidebar = () => {
           onClose={() => setEditUserOpen(false)}
           user={user}
         />
-      )}
-
-      {/**search user */}
-      {openSearchUser && (
-        <SearchUser onClose={() => setOpenSearchUser(false)} />
       )}
     </div>
   );

@@ -222,12 +222,10 @@ const MessageList = ({
                               }
                             />
                           </DialogTrigger>
-                          <DialogContent className="p-0 w-[1000px]">
+                          <DialogContent className="p-0 w-[1000px] max-w-full ">
                             <img
                               src={msg?.mediaUrl}
-                              className={
-                                "w-[900px] max-w-full rounded-lg border-none"
-                              }
+                              className={"rounded-lg border-none"}
                             />
                           </DialogContent>
                         </Dialog>

@@ -7,17 +7,22 @@ import { IUser } from "@/types";
 import useDebounce from "@/hooks/useDebounce";
 import { searchUserByString } from "@/services/UserService";
 import { useSelector } from "react-redux";
+import {
+  DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTrigger,
+} from "../ui/dialog";
+import { FaUserPlus } from "react-icons/fa6";
 
-type Props = {
-  onClose: () => void;
-};
-
-const SearchUser = ({ onClose }: Props) => {
+const SearchUser = () => {
   const currentUser = useSelector((state: any) => state?.auth);
   const [searchUser, setSearchUser] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
+  const [open, setOpen] = useState(false);
 
   const handleSearchUser = async () => {
     setLoading(true);
@@ -41,54 +46,68 @@ const SearchUser = ({ onClose }: Props) => {
 
   return (
     <>
-      <div className="fixed top-0 bottom-0 left-0 right-0 bg-slate-700 bg-opacity-40 p-2 z-10">
-        <div className="w-full max-w-lg mx-auto mt-10">
-          {/**input search user */}
-          <div className="bg-white rounded h-14 overflow-hidden flex ">
-            <input
-              type="text"
-              placeholder="Search user by name, email...."
-              className="w-full outline-none py-1 h-full px-4"
-              onChange={(e) => setSearch(e.target.value)}
-              value={search}
-            />
-            <div className="h-14 w-14 flex justify-center items-center">
-              <IoSearchOutline size={25} />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <div
+            title="add friend"
+            className="w-12 h-12 flex justify-center items-center cursor-pointer hover:bg-slate-200 rounded"
+          >
+            <FaUserPlus size={20} />
+          </div>
+        </DialogTrigger>
+        <DialogContent className="h-[200px] bg-transparent border-none shadow-none">
+          <DialogHeader>
+            <DialogTitle></DialogTitle>
+          </DialogHeader>
+          <div className="fixed top-0 bottom-0 left-0 right-0 bg-opacity-40 p-2 z-10">
+            <div className="w-full max-w-lg mx-auto">
+              {/**input search user */}
+              <div className="bg-white rounded h-14 overflow-hidden flex ">
+                <input
+                  type="text"
+                  placeholder="Search user by name, email...."
+                  className="w-full outline-none py-1 h-full px-4"
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === " " &&
+                      e.currentTarget.value.length === 0
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onChange={(e) => setSearch(e.target.value)}
+                  value={search}
+                />
+                <div className="h-14 w-14 flex justify-center items-center">
+                  <IoSearchOutline size={25} />
+                </div>
+              </div>
+
+              <div className="bg-white mt-2 w-full px-2 py-3 rounded">
+                {searchUser.length === 0 && !loading && (
+                  <div className="text-center text-slate-500">
+                    no user found!
+                  </div>
+                )}
+
+                {loading && <Loading />}
+
+                {searchUser.length !== 0 &&
+                  !loading &&
+                  searchUser.map((user) => {
+                    return (
+                      <UserSearchCard
+                        key={user.id}
+                        user={user}
+                        onClose={() => setOpen(false)}
+                      />
+                    );
+                  })}
+              </div>
             </div>
           </div>
-
-          <div className="bg-white mt-2 w-full px-2 py-3 rounded">
-            {searchUser.length === 0 && !loading && (
-              <div className="text-center text-slate-500">
-                no user found!
-              </div>
-            )}
-
-            {loading && <Loading />}
-
-            {searchUser.length !== 0 &&
-              !loading &&
-              searchUser.map((user) => {
-                return (
-                  <UserSearchCard
-                    key={user.id}
-                    user={user}
-                    onClose={onClose}
-                  />
-                );
-              })}
-          </div>
-        </div>
-
-        <div
-          className="absolute top-0 right-0 text-2xl p-2 lg:text-4xl hover:text-white"
-          onClick={onClose}
-        >
-          <button>
-            <IoClose />
-          </button>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
